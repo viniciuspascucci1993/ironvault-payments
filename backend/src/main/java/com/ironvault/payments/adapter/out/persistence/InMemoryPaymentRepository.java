@@ -14,7 +14,7 @@ public class InMemoryPaymentRepository implements PaymentRepositoryPort {
 
     @Override
     public Payment save(Payment payment) {
-        storage.put(payment.id(), payment);
+        storage.put(payment.getId(), payment);
         return payment;
     }
 }
