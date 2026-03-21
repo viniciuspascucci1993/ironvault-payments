@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: payments-backend
+
+server:
+  port: 8080
