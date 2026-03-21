@@ -2,10 +2,13 @@ package com.ironvault.payments.adapter.out.persistence;
 
 import com.ironvault.payments.adapter.out.entity.PaymentEntity;
 import com.ironvault.payments.adapter.out.mapper.PaymentMapper;
-import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public class PaymentRepositoryAdapter implements PaymentRepositoryPort {
@@ -26,5 +29,19 @@ public class PaymentRepositoryAdapter implements PaymentRepositoryPort {
         PaymentEntity saved = paymentJpaRepository.save(entity);
 
         return mapper.toDomain(saved);
+    }
+
+    @Override
+    public List<Payment> findAll() {
+        return paymentJpaRepository.findAll()
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public Optional<Payment> findById(UUID id) {
+        return paymentJpaRepository.findById(id)
+                .map(mapper::toDomain);
     }
 }
