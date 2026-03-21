@@ -1,12 +1,13 @@
 package com.ironvault.payments.adapter.in.web;
 
+import com.ironvault.payments.adapter.in.dto.CreatePaymentRequest;
+import com.ironvault.payments.adapter.in.dto.CreatePaymentResponse;
 import com.ironvault.payments.domain.model.Payment;
-import com.ironvault.payments.domain.port.in.CreatePaymentUseCase;
+import com.ironvault.payments.domain.port.in.payment.CreatePaymentCommand;
+import com.ironvault.payments.domain.port.in.payment.CreatePaymentUseCase;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import java.math.BigDecimal;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,13 +26,23 @@ public class PaymentController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Payment create(@Valid @RequestBody CreatePaymentRequest request) {
-        return createPaymentUseCase.create(new CreatePaymentUseCase.Command(request.amount(), request.currency()));
-    }
+    public ResponseEntity<CreatePaymentResponse> create(@Valid @RequestBody CreatePaymentRequest request) {
 
-    public record CreatePaymentRequest(
-            @DecimalMin(value = "0.01") BigDecimal amount,
-            @NotBlank String currency
-    ) {
+        Payment payment = createPaymentUseCase.create(
+                new CreatePaymentCommand(
+                        request.getAmount(),
+                        request.getCurrency()
+                )
+        );
+
+        CreatePaymentResponse response = new CreatePaymentResponse(
+                payment.getId(),
+                payment.getAmount(),
+                payment.getCurrency(),
+                payment.getStatus().name(),
+                payment.getCreatedAt()
+        );
+
+        return ResponseEntity.status(201).body(response);
     }
 }

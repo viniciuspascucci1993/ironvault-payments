@@ -1,7 +1,9 @@
 package com.ironvault.payments.application;
 
+import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
-import com.ironvault.payments.domain.port.in.CreatePaymentUseCase;
+import com.ironvault.payments.domain.port.in.payment.CreatePaymentCommand;
+import com.ironvault.payments.domain.port.in.payment.CreatePaymentUseCase;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
 import java.time.Instant;
 import java.util.UUID;
@@ -17,12 +19,12 @@ public class PaymentService implements CreatePaymentUseCase {
     }
 
     @Override
-    public Payment create(Command command) {
+    public Payment create(CreatePaymentCommand command) {
         Payment payment = new Payment(
                 UUID.randomUUID(),
-                command.amount(),
-                command.currency(),
-                "CREATED",
+                command.getAmount(),
+                command.getCurrency(),
+                PaymentStatus.CREATED,
                 Instant.now()
         );
         return paymentRepositoryPort.save(payment);
