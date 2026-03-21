@@ -15,7 +15,9 @@ public class PaymentEntity {
     private UUID id;
     private BigDecimal amount;
     private String currency;
-    private String  status;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus  status;
     private Instant createdAt;
 
     public PaymentEntity() { }
@@ -23,7 +25,7 @@ public class PaymentEntity {
     public PaymentEntity(UUID id,
                          BigDecimal amount,
                          String currency,
-                         String  status,
+                         PaymentStatus  status,
                          Instant createdAt) {
         this.id = id;
         this.amount = amount;
@@ -56,11 +58,11 @@ public class PaymentEntity {
         this.currency = currency;
     }
 
-    public String  getStatus() {
+    public PaymentStatus  getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(PaymentStatus status) {
         this.status = status;
     }
 
