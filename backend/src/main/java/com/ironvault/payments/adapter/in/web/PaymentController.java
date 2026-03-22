@@ -12,6 +12,7 @@ import com.ironvault.payments.domain.port.in.payment.GetPaymentByIdUseCase;
 import com.ironvault.payments.domain.query.PageQuery;
 import com.ironvault.payments.domain.query.PageResult;
 import com.ironvault.payments.domain.query.PaymentFilter;
+import com.ironvault.payments.utils.IdempotencyKeyValidator;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,24 +43,19 @@ public class PaymentController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<PaymentResponse> create(@Valid @RequestBody PaymentRequest request) {
+    public ResponseEntity<PaymentResponse> create(
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @Valid @RequestBody PaymentRequest request) {
+
+        // Validate idempotencyKey
+        IdempotencyKeyValidator.validateIdempotencyKey(idempotencyKey);
 
         Payment payment = createPaymentUseCase.create(
-                new CreatePaymentCommand(
-                        request.getAmount(),
-                        request.getCurrency()
-                )
+                new CreatePaymentCommand(request.getAmount(), request.getCurrency()),
+                idempotencyKey
         );
 
-        PaymentResponse response = new PaymentResponse(
-                payment.getId(),
-                payment.getAmount(),
-                payment.getCurrency(),
-                payment.getStatus().name(),
-                payment.getCreatedAt()
-        );
-
-        return ResponseEntity.status(201).body(response);
+        return ResponseEntity.status(201).body(mapper.toResponse(payment));
     }
 
     @GetMapping("/{id}")

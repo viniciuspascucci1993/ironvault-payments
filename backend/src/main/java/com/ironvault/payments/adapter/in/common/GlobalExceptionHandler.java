@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.time.Instant;
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -69,5 +71,17 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiError> handleConflict(IllegalStateException ex, HttpServletRequest request) {
+        return ResponseEntity.status(409).body(
+                new ApiError(
+                        409,
+                        "Conflict",
+                        ex.getMessage(),
+                        request.getRequestURI()
+                )
+        );
     }
 }

@@ -4,6 +4,6 @@ import com.ironvault.payments.domain.model.Payment;
 
 public interface CreatePaymentUseCase {
 
-    Payment create(CreatePaymentCommand createPaymentCommand);
+    Payment create(CreatePaymentCommand createPaymentCommand, String idempotencyKey);
 
 }
