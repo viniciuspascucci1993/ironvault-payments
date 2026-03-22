@@ -104,6 +104,18 @@ public class PaymentController {
                 maxAmount
         );
 
+        if (currency != null && currency.length() != 3) {
+            throw new IllegalArgumentException(
+                    "Currency must be a 3-letter code (e.g. BRL, USD)"
+            );
+        }
+
+        if (minAmount != null && maxAmount != null && minAmount.compareTo(maxAmount) > 0) {
+            throw new IllegalArgumentException(
+                    "minAmount cannot be greater than maxAmount"
+            );
+        }
+
         PageQuery pageQuery = new PageQuery(page, size);
 
         PageResult<PaymentResponse> response =
