@@ -1,22 +1,23 @@
 package com.ironvault.payments.adapter.in.web;
 
-import com.ironvault.payments.adapter.in.dto.CreatePaymentRequest;
-import com.ironvault.payments.adapter.in.dto.CreatePaymentResponse;
+import com.ironvault.payments.adapter.in.dto.PaymentRequest;
+import com.ironvault.payments.adapter.in.dto.PaymentResponse;
+import com.ironvault.payments.adapter.in.mapper.PaymentResponseMapper;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentCommand;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentUseCase;
 import com.ironvault.payments.domain.port.in.payment.GetAllPaymentsUseCase;
 import com.ironvault.payments.domain.port.in.payment.GetPaymentByIdUseCase;
+import com.ironvault.payments.domain.query.PageQuery;
+import com.ironvault.payments.domain.query.PageResult;
+import com.ironvault.payments.domain.query.PaymentFilter;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -27,17 +28,21 @@ public class PaymentController {
     private final GetAllPaymentsUseCase getAllPaymentsUseCase;
     private final GetPaymentByIdUseCase getPaymentByIdUseCase;
 
+    private final PaymentResponseMapper mapper;
+
     public PaymentController(CreatePaymentUseCase createPaymentUseCase,
                              GetAllPaymentsUseCase getAllPaymentsUseCase,
-                             GetPaymentByIdUseCase getPaymentByIdUseCase) {
+                             GetPaymentByIdUseCase getPaymentByIdUseCase,
+                             PaymentResponseMapper mapper) {
         this.createPaymentUseCase = createPaymentUseCase;
         this.getAllPaymentsUseCase = getAllPaymentsUseCase;
         this.getPaymentByIdUseCase = getPaymentByIdUseCase;
+        this.mapper = mapper;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<CreatePaymentResponse> create(@Valid @RequestBody CreatePaymentRequest request) {
+    public ResponseEntity<PaymentResponse> create(@Valid @RequestBody PaymentRequest request) {
 
         Payment payment = createPaymentUseCase.create(
                 new CreatePaymentCommand(
@@ -46,7 +51,7 @@ public class PaymentController {
                 )
         );
 
-        CreatePaymentResponse response = new CreatePaymentResponse(
+        PaymentResponse response = new PaymentResponse(
                 payment.getId(),
                 payment.getAmount(),
                 payment.getCurrency(),
@@ -58,11 +63,11 @@ public class PaymentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CreatePaymentResponse> getById(@PathVariable("id")UUID id) {
+    public ResponseEntity<PaymentResponse> getById(@PathVariable("id")UUID id) {
 
         Payment payment = getPaymentByIdUseCase.getById(id);
 
-        CreatePaymentResponse response = new CreatePaymentResponse(
+        PaymentResponse response = new PaymentResponse(
                 payment.getId(),
                 payment.getAmount(),
                 payment.getCurrency(),
@@ -74,27 +79,43 @@ public class PaymentController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<CreatePaymentResponse>> getAll(
+    public ResponseEntity<PageResult<PaymentResponse>> getAll(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String currency,
             @RequestParam(required = false) BigDecimal minAmount,
             @RequestParam(required = false) BigDecimal maxAmount,
-            Pageable pageable) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        Page<CreatePaymentResponse> response =
-                getAllPaymentsUseCase.getAllWithFilters(
-                        status,
-                        currency,
-                        minAmount,
-                        maxAmount,
-                        pageable
-                ).map(p -> new CreatePaymentResponse(
-                        p.getId(),
-                        p.getAmount(),
-                        p.getCurrency(),
-                        p.getStatus().name(),
-                        p.getCreatedAt()
-                ));
+        PaymentStatus paymentStatus = null;
+
+        if (status != null) {
+            try {
+                paymentStatus = PaymentStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalArgumentException("Invalid status: " + status);
+            }
+        }
+
+        PaymentFilter filter = new PaymentFilter(
+                paymentStatus,
+                currency,
+                minAmount,
+                maxAmount
+        );
+
+        PageQuery pageQuery = new PageQuery(page, size);
+
+        PageResult<PaymentResponse> response =
+                getAllPaymentsUseCase
+                        .getAllWithFilters(filter, pageQuery)
+                        .map((Payment p) -> new PaymentResponse(
+                                p.getId(),
+                                p.getAmount(),
+                                p.getCurrency(),
+                                p.getStatus().name(),
+                                p.getCreatedAt()
+                        ));
 
         return ResponseEntity.ok(response);
     }

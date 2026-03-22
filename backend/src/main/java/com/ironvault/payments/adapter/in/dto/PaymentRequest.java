@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreatePaymentRequest {
+public class PaymentRequest {
 
     @NotNull
     private BigDecimal amount;

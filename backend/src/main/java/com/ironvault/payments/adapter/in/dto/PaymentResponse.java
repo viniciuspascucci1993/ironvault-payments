@@ -11,7 +11,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreatePaymentResponse {
+public class PaymentResponse {
 
     private UUID id;
     private BigDecimal amount;
