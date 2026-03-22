@@ -2,16 +2,20 @@ package com.ironvault.payments.adapter.in.web;
 
 import com.ironvault.payments.adapter.in.dto.CreatePaymentRequest;
 import com.ironvault.payments.adapter.in.dto.CreatePaymentResponse;
+import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentCommand;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentUseCase;
 import com.ironvault.payments.domain.port.in.payment.GetAllPaymentsUseCase;
 import com.ironvault.payments.domain.port.in.payment.GetPaymentByIdUseCase;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -53,22 +57,6 @@ public class PaymentController {
         return ResponseEntity.status(201).body(response);
     }
 
-    @GetMapping
-    public ResponseEntity<List<CreatePaymentResponse>> getAll() {
-
-        List<CreatePaymentResponse> response = getAllPaymentsUseCase.getAll()
-                .stream()
-                .map(p -> new CreatePaymentResponse(
-                        p.getId(),
-                        p.getAmount(),
-                        p.getCurrency(),
-                        p.getStatus().name(),
-                        p.getCreatedAt()
-                )).toList();
-
-        return ResponseEntity.ok(response);
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<CreatePaymentResponse> getById(@PathVariable("id")UUID id) {
 
@@ -85,5 +73,30 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping
+    public ResponseEntity<Page<CreatePaymentResponse>> getAll(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String currency,
+            @RequestParam(required = false) BigDecimal minAmount,
+            @RequestParam(required = false) BigDecimal maxAmount,
+            Pageable pageable) {
+
+        Page<CreatePaymentResponse> response =
+                getAllPaymentsUseCase.getAllWithFilters(
+                        status,
+                        currency,
+                        minAmount,
+                        maxAmount,
+                        pageable
+                ).map(p -> new CreatePaymentResponse(
+                        p.getId(),
+                        p.getAmount(),
+                        p.getCurrency(),
+                        p.getStatus().name(),
+                        p.getCreatedAt()
+                ));
+
+        return ResponseEntity.ok(response);
+    }
 
 }

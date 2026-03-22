@@ -2,10 +2,15 @@ package com.ironvault.payments.adapter.out.persistence;
 
 import com.ironvault.payments.adapter.out.entity.PaymentEntity;
 import com.ironvault.payments.adapter.out.mapper.PaymentMapper;
+import com.ironvault.payments.adapter.out.persistence.specification.PaymentSpecification;
+import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,17 +36,22 @@ public class PaymentRepositoryAdapter implements PaymentRepositoryPort {
         return mapper.toDomain(saved);
     }
 
-    @Override
-    public List<Payment> findAll() {
-        return paymentJpaRepository.findAll()
-                .stream()
-                .map(mapper::toDomain)
-                .toList();
-    }
 
     @Override
     public Optional<Payment> findById(UUID id) {
         return paymentJpaRepository.findById(id)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public Page<Payment> findAllWithFilters(PaymentStatus status,
+                                            String currency,
+                                            BigDecimal minAmount,
+                                            BigDecimal maxAmount,
+                                            Pageable pageable) {
+        var specificationFilter = PaymentSpecification.withFilters(status, currency, minAmount, maxAmount);
+
+        return paymentJpaRepository.findAll(specificationFilter, pageable)
                 .map(mapper::toDomain);
     }
 }
