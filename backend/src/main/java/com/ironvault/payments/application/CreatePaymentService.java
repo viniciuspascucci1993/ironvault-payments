@@ -10,9 +10,12 @@ import com.ironvault.payments.domain.port.out.PaymentIdempotencyRepositoryPort;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
 import java.time.Instant;
 import java.util.UUID;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class CreatePaymentService implements CreatePaymentUseCase {
 
     private final PaymentRepositoryPort paymentRepositoryPort;
@@ -57,8 +60,6 @@ public class CreatePaymentService implements CreatePaymentUseCase {
         );
 
         Payment saved = paymentRepositoryPort.save(payment);
-
-        // 🔥 só salva se tiver key
         if (idempotencyKey != null && !idempotencyKey.isBlank()) {
 
             PaymentIdempotency record = new PaymentIdempotency(
@@ -70,6 +71,11 @@ public class CreatePaymentService implements CreatePaymentUseCase {
 
             idempotencyRepository.save(record);
         }
+
+        log.info("Creating payment amount={} currency={}", command.getAmount(), command.getCurrency());
+        log.info("POST /payments - Creating payment amount={} currency={}",
+                command.getAmount(),
+                command.getCurrency());
 
         return saved;
     }
