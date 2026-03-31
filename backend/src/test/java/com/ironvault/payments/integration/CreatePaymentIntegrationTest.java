@@ -17,7 +17,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Callable;
 
+import org.springframework.test.context.ActiveProfiles;
+
 @SpringBootTest
+@ActiveProfiles("test")
 public class CreatePaymentIntegrationTest {
 
     @Autowired
