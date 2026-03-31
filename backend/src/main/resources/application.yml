@@ -2,5 +2,14 @@ spring:
   application:
     name: payments-backend
 
+  datasource:
+    url: jdbc:postgresql://localhost:5490/ironvault
+    username: ironvault
+    password: ironvault
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
 server:
   port: 8080
