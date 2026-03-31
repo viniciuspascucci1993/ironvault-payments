@@ -51,7 +51,8 @@ public class PaymentController {
         IdempotencyKeyValidator.validateIdempotencyKey(idempotencyKey);
 
         Payment payment = createPaymentUseCase.create(
-                new CreatePaymentCommand(request.getAmount(), request.getCurrency()),
+                new CreatePaymentCommand(request.getAmount(), request.getCurrency(), request.getPaymentMethod(),
+                        request.getDescription()),
                 idempotencyKey
         );
 
@@ -68,6 +69,11 @@ public class PaymentController {
                 payment.getAmount(),
                 payment.getCurrency(),
                 payment.getStatus().name(),
+                payment.getDescription(),
+                payment.getExternalId(),
+                payment.getFailureReason(),
+                payment.getPaymentMethod().name(),
+                payment.getUpdatedAt(),
                 payment.getCreatedAt()
         );
 
@@ -121,8 +127,13 @@ public class PaymentController {
                                 p.getId(),
                                 p.getAmount(),
                                 p.getCurrency(),
+                                p.getDescription(),
                                 p.getStatus().name(),
-                                p.getCreatedAt()
+                                p.getPaymentMethod().name(),
+                                p.getFailureReason(),
+                                p.getExternalId(),
+                                p.getCreatedAt(),
+                                p.getUpdatedAt()
                         ));
 
         return ResponseEntity.ok(response);

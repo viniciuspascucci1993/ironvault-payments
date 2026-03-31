@@ -25,7 +25,10 @@ public class CreatePaymentIntegrationTest {
 
         String key = "ironvault-test-123";
 
-        var cmd = new CreatePaymentCommand(BigDecimal.valueOf(100.0), "BRL");
+        var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
+                "BRL",
+                "test-description",
+                "customer-123");
 
         var first = createPaymentUseCase.create(cmd, key);
         var second = createPaymentUseCase.create(cmd, key);
@@ -37,7 +40,10 @@ public class CreatePaymentIntegrationTest {
     @DisplayName("Should create different payments when idempotency key is not provided")
     void shouldCreateDifferentPaymentsWithoutIdempotencyKey() {
 
-        var cmd = new CreatePaymentCommand(BigDecimal.valueOf(100.0), "BRL");
+        var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
+                "BRL",
+                "test-description",
+                "customer-123");
 
         var first = createPaymentUseCase.create(cmd, null);
         var second = createPaymentUseCase.create(cmd, null);
@@ -51,7 +57,10 @@ public class CreatePaymentIntegrationTest {
 
         String key = "ironvault-concurrent-1";
 
-        var cmd = new CreatePaymentCommand(BigDecimal.valueOf(100.0), "BRL");
+        var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
+                "BRL",
+                "test-description",
+                "customer-123");
 
         var executor = java.util.concurrent.Executors.newFixedThreadPool(2);
 
@@ -71,8 +80,14 @@ public class CreatePaymentIntegrationTest {
 
         String key = "ironvault-test-456";
 
-        var cmd1 = new CreatePaymentCommand(BigDecimal.valueOf(200.0), "BRL");
-        var cmd2 = new CreatePaymentCommand(BigDecimal.valueOf(300.0), "BRL");
+        var cmd1 = new CreatePaymentCommand(BigDecimal.valueOf(200),
+                "BRL",
+                "test-description",
+                "customer-123");
+        var cmd2 = new CreatePaymentCommand(BigDecimal.valueOf(300),
+                "BRL",
+                "test-description",
+                "customer-123");
 
         createPaymentUseCase.create(cmd1, key);
 

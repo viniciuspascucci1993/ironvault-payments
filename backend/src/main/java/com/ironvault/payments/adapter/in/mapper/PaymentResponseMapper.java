@@ -8,6 +8,10 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface PaymentResponseMapper {
 
-    @Mapping(target = "status", expression = "java(payment.getStatus().name())")
+    @Mapping(target = "status", expression = "java(mapEnum(payment.getStatus()))")
     PaymentResponse toResponse(Payment payment);
+
+    default String mapEnum(Enum<?> e) {
+        return e != null ? e.name() : null;
+    }
 }

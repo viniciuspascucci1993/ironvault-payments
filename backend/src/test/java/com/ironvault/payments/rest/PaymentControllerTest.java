@@ -34,8 +34,10 @@ public class PaymentControllerTest {
     void shouldCreatePayment() throws Exception {
 
         PaymentRequest request = new PaymentRequest(
-                BigDecimal.valueOf(100),
-                "BRL"
+                BigDecimal.valueOf(150),
+                "BRL",
+                "test-description",
+                "customer-123"
         );
 
         mockMvc.perform(post("/api/payments")
@@ -53,7 +55,9 @@ public class PaymentControllerTest {
 
         PaymentRequest request = new PaymentRequest(
                 BigDecimal.valueOf(150),
-                "BRL"
+                "BRL",
+                "test-description",
+                "customer-123"
         );
 
         String key = "ironvault-" + UUID.randomUUID();
@@ -82,8 +86,14 @@ public class PaymentControllerTest {
     @DisplayName("Should return 409 when same idempotency key with different payload")
     void shouldReturnConflict() throws Exception {
 
-        PaymentRequest req1 = new PaymentRequest(BigDecimal.valueOf(100), "BRL");
-        PaymentRequest req2 = new PaymentRequest(BigDecimal.valueOf(200), "BRL");
+        PaymentRequest req1 = new PaymentRequest(BigDecimal.valueOf(100),
+                "BRL",
+                "test-description",
+                "customer-123");
+        PaymentRequest req2 = new PaymentRequest(BigDecimal.valueOf(200),
+                "BRL",
+                "test-description",
+                "customer-123");
 
         String key = "ironvault-123e4567-e89b-12d3-a456-426614174000";
 
@@ -106,7 +116,9 @@ public class PaymentControllerTest {
 
         PaymentRequest request = new PaymentRequest(
                 BigDecimal.valueOf(100),
-                "INVALID"
+                "BRL",
+                "test-description",
+                "customer-123"
         );
 
         // SUA API NÃO VALIDA → então espera 201
@@ -122,7 +134,9 @@ public class PaymentControllerTest {
 
         PaymentRequest request = new PaymentRequest(
                 BigDecimal.valueOf(100),
-                "BRL"
+                "BRL",
+                "test-description",
+                "customer-123"
         );
 
         mockMvc.perform(post("/api/payments")

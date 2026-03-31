@@ -17,5 +17,10 @@ public class PaymentResponse {
     private BigDecimal amount;
     private String currency;
     private String status;
+    private String paymentMethod;
+    private String description;
+    private String externalId;
+    private String failureReason;
     private Instant createdAt;
+    private Instant updatedAt;
 }

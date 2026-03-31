@@ -1,5 +1,6 @@
 package com.ironvault.payments.adapter.out.entity;
 
+import com.ironvault.payments.domain.enums.PaymentMethod;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import jakarta.persistence.*;
 
@@ -18,20 +19,39 @@ public class PaymentEntity {
 
     @Enumerated(EnumType.STRING)
     private PaymentStatus  status;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
+
+    private String description;
+    private String externalId;
+    private String failureReason;
+
     private Instant createdAt;
+    private Instant updatedAt;
+
 
     public PaymentEntity() { }
 
-    public PaymentEntity(UUID id,
-                         BigDecimal amount,
+    public PaymentEntity(UUID id, BigDecimal amount,
                          String currency,
-                         PaymentStatus  status,
-                         Instant createdAt) {
+                         PaymentStatus status,
+                         PaymentMethod paymentMethod,
+                         String description,
+                         String externalId,
+                         String failureReason,
+                         Instant createdAt,
+                         Instant updatedAt) {
         this.id = id;
         this.amount = amount;
         this.currency = currency;
         this.status = status;
+        this.paymentMethod = paymentMethod;
+        this.description = description;
+        this.externalId = externalId;
+        this.failureReason = failureReason;
         this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public UUID getId() {
@@ -58,12 +78,44 @@ public class PaymentEntity {
         this.currency = currency;
     }
 
-    public PaymentStatus  getStatus() {
+    public PaymentStatus getStatus() {
         return status;
     }
 
     public void setStatus(PaymentStatus status) {
         this.status = status;
+    }
+
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getExternalId() {
+        return externalId;
+    }
+
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
+    }
+
+    public String getFailureReason() {
+        return failureReason;
+    }
+
+    public void setFailureReason(String failureReason) {
+        this.failureReason = failureReason;
     }
 
     public Instant getCreatedAt() {
@@ -72,5 +124,13 @@ public class PaymentEntity {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

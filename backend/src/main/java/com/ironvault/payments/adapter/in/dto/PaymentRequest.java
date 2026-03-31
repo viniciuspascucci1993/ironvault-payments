@@ -18,4 +18,8 @@ public class PaymentRequest {
 
     @NotBlank
     private String currency;
+
+    @NotBlank
+    private String paymentMethod;
+    private String description;
 }

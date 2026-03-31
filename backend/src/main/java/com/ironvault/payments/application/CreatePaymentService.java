@@ -1,6 +1,7 @@
 package com.ironvault.payments.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ironvault.payments.domain.enums.PaymentMethod;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.model.PaymentIdempotency;
@@ -100,6 +101,11 @@ public class CreatePaymentService implements CreatePaymentUseCase {
                 command.getAmount(),
                 command.getCurrency(),
                 PaymentStatus.CREATED,
+                PaymentMethod.valueOf(command.getPaymentMethod()),
+                command.getDescription(),
+                null,
+                null,
+                Instant.now(),
                 Instant.now()
         );
 
