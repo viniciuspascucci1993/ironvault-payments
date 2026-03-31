@@ -36,17 +36,28 @@ public class CreatePaymentService implements CreatePaymentUseCase {
         String requestHash = generateHash(command);
         if (idempotencyKey != null && !idempotencyKey.isBlank()) {
 
-            var existing = idempotencyRepository.findByKey(idempotencyKey);
+            try {
+                PaymentIdempotency paymentIdempotency = new PaymentIdempotency(
+                        idempotencyKey,
+                        requestHash,
+                        null,
+                        Instant.now()
+                );
 
-            if (existing.isPresent()) {
+                idempotencyRepository.save(paymentIdempotency);
+            } catch (Exception ex) {
+                var existing = idempotencyRepository.findByKey(idempotencyKey);
 
-                if (!existing.get().getRequestHash().equals(requestHash)) {
-                    throw new IllegalStateException(
-                            "Idempotency key already used with different payload"
-                    );
+                if (existing.isPresent()) {
+
+                    if (!existing.get().getRequestHash().equals(requestHash)) {
+                        throw new IllegalStateException(
+                                "Idempotency key already used with different payload"
+                        );
+                    }
+
+                    return deserialize(existing.get().getResponse());
                 }
-
-                return deserialize(existing.get().getResponse());
             }
         }
 
@@ -60,6 +71,7 @@ public class CreatePaymentService implements CreatePaymentUseCase {
         );
 
         Payment saved = paymentRepositoryPort.save(payment);
+
         if (idempotencyKey != null && !idempotencyKey.isBlank()) {
 
             PaymentIdempotency record = new PaymentIdempotency(

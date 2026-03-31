@@ -12,6 +12,7 @@ import java.time.Instant;
 public class PaymentIdempotencyEntity {
 
     @Id
+    @Column(unique = true, nullable = false)
     private String idempotencyKey;
 
     private String requestHash;
