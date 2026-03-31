@@ -6,6 +6,8 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     show-sql: true
