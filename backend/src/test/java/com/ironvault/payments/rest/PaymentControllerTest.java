@@ -36,17 +36,18 @@ public class PaymentControllerTest {
         PaymentRequest request = new PaymentRequest(
                 BigDecimal.valueOf(150),
                 "BRL",
-                "test-description",
-                "customer-123"
+                "PIX",
+                "test-description"
         );
 
         mockMvc.perform(post("/api/payments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.amount").value(100))
+                .andExpect(jsonPath("$.amount").value(150))
                 .andExpect(jsonPath("$.currency").value("BRL"))
-                .andExpect(jsonPath("$.status").value("CREATED"));
+                .andExpect(jsonPath("$.status").value("CREATED"))
+                .andExpect(jsonPath("$.paymentMethod").value("PIX"));
     }
 
     @Test
@@ -56,8 +57,8 @@ public class PaymentControllerTest {
         PaymentRequest request = new PaymentRequest(
                 BigDecimal.valueOf(150),
                 "BRL",
-                "test-description",
-                "customer-123"
+                "PIX",
+                "test-description"
         );
 
         String key = "ironvault-" + UUID.randomUUID();
@@ -88,12 +89,12 @@ public class PaymentControllerTest {
 
         PaymentRequest req1 = new PaymentRequest(BigDecimal.valueOf(100),
                 "BRL",
-                "test-description",
-                "customer-123");
+                "PIX",
+                "test-description");
         PaymentRequest req2 = new PaymentRequest(BigDecimal.valueOf(200),
                 "BRL",
-                "test-description",
-                "customer-123");
+                "PIX",
+                "test-description");
 
         String key = "ironvault-123e4567-e89b-12d3-a456-426614174000";
 
@@ -111,21 +112,21 @@ public class PaymentControllerTest {
     }
 
     @Test
-    @DisplayName("Should return 400 when currency is invalid")
+    @DisplayName("Should return 400 when payment method is invalid")
     void shouldReturnBadRequest() throws Exception {
 
         PaymentRequest request = new PaymentRequest(
                 BigDecimal.valueOf(100),
                 "BRL",
-                "test-description",
-                "customer-123"
+                "INVALID_METHOD",
+                "test-description"
         );
 
         // SUA API NÃO VALIDA → então espera 201
         mockMvc.perform(post("/api/payments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -135,8 +136,8 @@ public class PaymentControllerTest {
         PaymentRequest request = new PaymentRequest(
                 BigDecimal.valueOf(100),
                 "BRL",
-                "test-description",
-                "customer-123"
+                "PIX",
+                "test-description"
         );
 
         mockMvc.perform(post("/api/payments")

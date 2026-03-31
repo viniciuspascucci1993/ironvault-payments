@@ -13,6 +13,10 @@ import java.util.concurrent.ExecutionException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.Callable;
+
 @SpringBootTest
 public class CreatePaymentIntegrationTest {
 
@@ -27,8 +31,8 @@ public class CreatePaymentIntegrationTest {
 
         var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
                 "BRL",
-                "test-description",
-                "customer-123");
+                "PIX",
+                "test-description");
 
         var first = createPaymentUseCase.create(cmd, key);
         var second = createPaymentUseCase.create(cmd, key);
@@ -42,8 +46,8 @@ public class CreatePaymentIntegrationTest {
 
         var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
                 "BRL",
-                "test-description",
-                "customer-123");
+                "PIX",
+                "test-description");
 
         var first = createPaymentUseCase.create(cmd, null);
         var second = createPaymentUseCase.create(cmd, null);
@@ -59,18 +63,36 @@ public class CreatePaymentIntegrationTest {
 
         var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
                 "BRL",
-                "test-description",
-                "customer-123");
+                "PIX",
+                "test-description");
 
-        var executor = java.util.concurrent.Executors.newFixedThreadPool(2);
+        var executor = Executors.newFixedThreadPool(2);
+        try {
+            Callable<Object> task = () -> {
+                try {
+                    return createPaymentUseCase.create(cmd, key);
+                } catch (IllegalStateException ex) {
+                    return ex;
+                }
+            };
 
-        var future1 = executor.submit(() -> createPaymentUseCase.create(cmd, key));
-        var future2 = executor.submit(() -> createPaymentUseCase.create(cmd, key));
+            Future<Object> future1 = executor.submit(task);
+            Future<Object> future2 = executor.submit(task);
 
-        var p1 = future1.get();
-        var p2 = future2.get();
+            Object result1 = future1.get();
+            Object result2 = future2.get();
 
-        assertThat(p1.getId()).isEqualTo(p2.getId());
+            if (result1 instanceof IllegalStateException || result2 instanceof IllegalStateException) {
+                IllegalStateException exception = (IllegalStateException) (result1 instanceof IllegalStateException ? result1 : result2);
+                assertThat(exception.getMessage()).contains("Request is still being processed");
+            } else {
+                var p1 = (com.ironvault.payments.domain.model.Payment) result1;
+                var p2 = (com.ironvault.payments.domain.model.Payment) result2;
+                assertThat(p1.getId()).isEqualTo(p2.getId());
+            }
+        } finally {
+            executor.shutdownNow();
+        }
 
     }
 
@@ -82,12 +104,12 @@ public class CreatePaymentIntegrationTest {
 
         var cmd1 = new CreatePaymentCommand(BigDecimal.valueOf(200),
                 "BRL",
-                "test-description",
-                "customer-123");
+                "PIX",
+                "test-description");
         var cmd2 = new CreatePaymentCommand(BigDecimal.valueOf(300),
                 "BRL",
-                "test-description",
-                "customer-123");
+                "PIX",
+                "test-description");
 
         createPaymentUseCase.create(cmd1, key);
 
