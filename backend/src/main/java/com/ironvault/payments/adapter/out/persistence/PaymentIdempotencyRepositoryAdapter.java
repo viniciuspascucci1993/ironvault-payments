@@ -23,6 +23,7 @@ public class PaymentIdempotencyRepositoryAdapter implements PaymentIdempotencyRe
                         e.getIdempotencyKey(),
                         e.getRequestHash(),
                         e.getResponse(),
+                        e.getPaymentId(),
                         e.getCreatedAt()
                 ));
     }

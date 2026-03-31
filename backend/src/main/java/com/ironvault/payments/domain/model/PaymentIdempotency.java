@@ -7,14 +7,16 @@ public class PaymentIdempotency {
     private String idempotencyKey;
     private String requestHash;
     private String response;
+    private String paymentId;
     private Instant createdAt;
 
     public PaymentIdempotency() { }
 
-    public PaymentIdempotency(String idempotencyKey, String requestHash, String response, Instant createdAt) {
+    public PaymentIdempotency(String idempotencyKey, String requestHash, String response, String paymentId, Instant createdAt) {
         this.idempotencyKey = idempotencyKey;
         this.requestHash = requestHash;
         this.response = response;
+        this.paymentId = paymentId;
         this.createdAt = createdAt;
     }
 
@@ -40,6 +42,14 @@ public class PaymentIdempotency {
 
     public void setResponse(String response) {
         this.response = response;
+    }
+
+    public String getPaymentId() {
+        return paymentId;
+    }
+
+    public void setPaymentId(String paymentId) {
+        this.paymentId = paymentId;
     }
 
     public Instant getCreatedAt() {

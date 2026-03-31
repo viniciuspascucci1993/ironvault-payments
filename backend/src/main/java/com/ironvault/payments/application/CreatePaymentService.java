@@ -68,6 +68,7 @@ public class CreatePaymentService implements CreatePaymentUseCase {
                         idempotencyKey,
                         requestHash,
                         null,
+                        null,
                         Instant.now()
                 );
 
@@ -118,6 +119,7 @@ public class CreatePaymentService implements CreatePaymentUseCase {
                     .orElseThrow();
 
             existing.setResponse(serialize(saved));
+            existing.setPaymentId(saved.getId().toString());
 
             idempotencyRepository.save(existing);
         }

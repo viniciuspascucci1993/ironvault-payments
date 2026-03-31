@@ -20,14 +20,19 @@ public class PaymentIdempotencyEntity {
     @Column(columnDefinition = "TEXT")
     private String response;
 
+    @Column(name = "payment_id", nullable = false)
+    private String paymentId;
+
     private Instant createdAt;
 
     public PaymentIdempotencyEntity() {}
 
-    public PaymentIdempotencyEntity(String idempotencyKey, String requestHash, String response, Instant createdAt) {
+    public PaymentIdempotencyEntity(String idempotencyKey,
+                                    String requestHash, String response, String paymentId, Instant createdAt) {
         this.idempotencyKey = idempotencyKey;
         this.requestHash = requestHash;
         this.response = response;
+        this.paymentId = paymentId;
         this.createdAt = createdAt;
     }
 
@@ -53,6 +58,14 @@ public class PaymentIdempotencyEntity {
 
     public void setResponse(String response) {
         this.response = response;
+    }
+
+    public String getPaymentId() {
+        return paymentId;
+    }
+
+    public void setPaymentId(String paymentId) {
+        this.paymentId = paymentId;
     }
 
     public Instant getCreatedAt() {
