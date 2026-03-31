@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,30 +35,62 @@ public class CreatePaymentService implements CreatePaymentUseCase {
     public Payment create(CreatePaymentCommand command, String idempotencyKey) {
 
         String requestHash = generateHash(command);
+
+        // 🥇 1. CHECK ANTES (resolve fluxo sequencial)
+        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+
+            var existing = idempotencyRepository.findByKey(idempotencyKey);
+
+            if (existing.isPresent()) {
+
+                if (!existing.get().getRequestHash().equals(requestHash)) {
+                    throw new IllegalStateException(
+                            "Idempotency key already used with different payload"
+                    );
+                }
+
+                if (existing.get().getResponse() == null) {
+                    throw new IllegalStateException(
+                            "Request is still being processed for this idempotency key"
+                    );
+                }
+
+                return deserialize(existing.get().getResponse());
+            }
+        }
+
+        // 🥈 2. RESERVA (resolve concorrência)
         if (idempotencyKey != null && !idempotencyKey.isBlank()) {
 
             try {
-                PaymentIdempotency paymentIdempotency = new PaymentIdempotency(
+                PaymentIdempotency reservation = new PaymentIdempotency(
                         idempotencyKey,
                         requestHash,
                         null,
                         Instant.now()
                 );
 
-                idempotencyRepository.save(paymentIdempotency);
-            } catch (Exception ex) {
-                var existing = idempotencyRepository.findByKey(idempotencyKey);
+                idempotencyRepository.save(reservation);
 
-                if (existing.isPresent()) {
+            } catch (DataIntegrityViolationException ex) {
 
-                    if (!existing.get().getRequestHash().equals(requestHash)) {
-                        throw new IllegalStateException(
-                                "Idempotency key already used with different payload"
-                        );
-                    }
+                // outro thread já reservou
+                var existing = idempotencyRepository.findByKey(idempotencyKey)
+                        .orElseThrow();
 
-                    return deserialize(existing.get().getResponse());
+                if (!existing.getRequestHash().equals(requestHash)) {
+                    throw new IllegalStateException(
+                            "Idempotency key already used with different payload"
+                    );
                 }
+
+                if (existing.getResponse() == null) {
+                    throw new IllegalStateException(
+                            "Request is still being processed for this idempotency key"
+                    );
+                }
+
+                return deserialize(existing.getResponse());
             }
         }
 
@@ -72,16 +105,15 @@ public class CreatePaymentService implements CreatePaymentUseCase {
 
         Payment saved = paymentRepositoryPort.save(payment);
 
+        // 🏁 4. UPDATE DA IDEMPOTÊNCIA
         if (idempotencyKey != null && !idempotencyKey.isBlank()) {
 
-            PaymentIdempotency record = new PaymentIdempotency(
-                    idempotencyKey,
-                    requestHash,
-                    serialize(saved),
-                    Instant.now()
-            );
+            var existing = idempotencyRepository.findByKey(idempotencyKey)
+                    .orElseThrow();
 
-            idempotencyRepository.save(record);
+            existing.setResponse(serialize(saved));
+
+            idempotencyRepository.save(existing);
         }
 
         log.info("Creating payment amount={} currency={}", command.getAmount(), command.getCurrency());
