@@ -19,12 +19,17 @@ import java.util.concurrent.Callable;
 
 import org.springframework.test.context.ActiveProfiles;
 
+import com.ironvault.payments.domain.port.out.PaymentIdempotencyRepositoryPort;
+
 @SpringBootTest
 @ActiveProfiles("test")
 public class CreatePaymentIntegrationTest {
 
     @Autowired
     private CreatePaymentUseCase createPaymentUseCase;
+
+    @Autowired
+    private PaymentIdempotencyRepositoryPort paymentIdempotencyRepositoryPort;
 
     @Test
     @DisplayName("Should return same payment when using the same idempotency key")
@@ -41,6 +46,10 @@ public class CreatePaymentIntegrationTest {
         var second = createPaymentUseCase.create(cmd, key);
 
         assertThat(first.getId()).isEqualTo(second.getId());
+
+        var persisted = paymentIdempotencyRepositoryPort.findByKey(key);
+        assertThat(persisted).isPresent();
+        assertThat(persisted.get().getPaymentId()).isEqualTo(first.getId().toString());
     }
 
     @Test

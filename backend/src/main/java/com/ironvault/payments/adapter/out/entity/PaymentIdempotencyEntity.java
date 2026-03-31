@@ -20,7 +20,7 @@ public class PaymentIdempotencyEntity {
     @Column(columnDefinition = "TEXT")
     private String response;
 
-    @Column(name = "payment_id", nullable = false)
+    @Column(name = "payment_id")
     private String paymentId;
 
     private Instant createdAt;

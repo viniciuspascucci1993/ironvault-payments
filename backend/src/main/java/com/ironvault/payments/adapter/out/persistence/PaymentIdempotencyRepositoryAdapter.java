@@ -35,6 +35,7 @@ public class PaymentIdempotencyRepositoryAdapter implements PaymentIdempotencyRe
         entity.setIdempotencyKey(idempotency.getIdempotencyKey());
         entity.setRequestHash(idempotency.getRequestHash());
         entity.setResponse(idempotency.getResponse());
+        entity.setPaymentId(idempotency.getPaymentId());
         entity.setCreatedAt(idempotency.getCreatedAt());
 
         repository.save(entity);
