@@ -9,7 +9,14 @@ import com.ironvault.payments.domain.port.in.payment.CreatePaymentCommand;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentUseCase;
 import com.ironvault.payments.domain.port.out.PaymentIdempotencyRepositoryPort;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
+
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
@@ -161,10 +168,20 @@ public class CreatePaymentService implements CreatePaymentUseCase {
     }
 
     private String generateHash(CreatePaymentCommand command) {
-        return command.getAmount()
-                + "|" + command.getCurrency()
-                + "|" + command.getPaymentMethod()
-                + "|" + command.getDescription();
+        try {
+            Map<String, String> payload = new LinkedHashMap<>();
+            payload.put("amount", normalizeAmount(command.getAmount()));
+            payload.put("currency", normalizeTextUpper(command.getCurrency()));
+            payload.put("paymentMethod", normalizeTextUpper(command.getPaymentMethod()));
+            payload.put("description", normalizeText(command.getDescription()));
+
+            String canonicalPayload = objectMapper.writeValueAsString(payload);
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(canonicalPayload.getBytes(StandardCharsets.UTF_8));
+            return bytesToHex(hashBytes);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Unable to generate request hash", ex);
+        }
     }
 
     private Payment resolvePendingOrInFlight(PaymentIdempotency existing) {
@@ -191,5 +208,31 @@ public class CreatePaymentService implements CreatePaymentUseCase {
                     "Invalid payment reference stored for this idempotency key"
             );
         }
+    }
+
+    private String normalizeAmount(BigDecimal amount) {
+        if (amount == null) {
+            return "null";
+        }
+        return amount.stripTrailingZeros().toPlainString();
+    }
+
+    private String normalizeTextUpper(String value) {
+        return normalizeText(value).toUpperCase(Locale.ROOT);
+    }
+
+    private String normalizeText(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.trim();
+    }
+
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
     }
 }
