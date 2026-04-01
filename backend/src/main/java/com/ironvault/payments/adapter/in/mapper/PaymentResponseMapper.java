@@ -9,6 +9,7 @@ import org.mapstruct.Mapping;
 public interface PaymentResponseMapper {
 
     @Mapping(target = "status", expression = "java(mapEnum(payment.getStatus()))")
+    @Mapping(target = "declineReason", expression = "java(mapEnum(payment.getDeclineReason()))")
     PaymentResponse toResponse(Payment payment);
 
     default String mapEnum(Enum<?> e) {

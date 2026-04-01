@@ -1,5 +1,6 @@
 package com.ironvault.payments.adapter.out.gateway;
 
+import com.ironvault.payments.domain.enums.DeclineReason;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.model.PaymentGatewayResult;
@@ -20,12 +21,22 @@ public class MockPaymentGatewayAdapter implements PaymentGatewayPort {
         }
 
         if (isApproved(payment.getAmount())) {
-            return new PaymentGatewayResult(externalId, PaymentStatus.APPROVED, null);
+            return new PaymentGatewayResult(
+                    externalId,
+                    PaymentStatus.APPROVED,
+                    "APPROVED",
+                    "Payment approved by mock gateway",
+                    null,
+                    null
+            );
         }
 
         return new PaymentGatewayResult(
                 externalId,
                 PaymentStatus.REJECTED,
+                "INSUFFICIENT_FUNDS",
+                "Mock gateway rejected payment",
+                DeclineReason.INSUFFICIENT_FUNDS,
                 "Mock gateway rejected payment"
         );
     }

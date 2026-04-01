@@ -20,6 +20,9 @@ public class PaymentResponse {
     private String paymentMethod;
     private String description;
     private String externalId;
+    private String gatewayCode;
+    private String gatewayMessage;
+    private String declineReason;
     private String failureReason;
     private Instant createdAt;
     private Instant updatedAt;

@@ -1,5 +1,6 @@
 package com.ironvault.payments.application;
 
+import com.ironvault.payments.application.mapper.GatewayDeclineReasonMapper;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.port.out.PaymentGatewayPort;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
@@ -16,11 +17,14 @@ public class ProcessPaymentAsyncService {
 
     private final PaymentRepositoryPort paymentRepositoryPort;
     private final PaymentGatewayPort paymentGatewayPort;
+    private final GatewayDeclineReasonMapper declineReasonMapper;
 
     public ProcessPaymentAsyncService(PaymentRepositoryPort paymentRepositoryPort,
-                                      PaymentGatewayPort paymentGatewayPort) {
+                                      PaymentGatewayPort paymentGatewayPort,
+                                      GatewayDeclineReasonMapper declineReasonMapper) {
         this.paymentRepositoryPort = paymentRepositoryPort;
         this.paymentGatewayPort = paymentGatewayPort;
+        this.declineReasonMapper = declineReasonMapper;
     }
 
     @Async
@@ -37,6 +41,9 @@ public class ProcessPaymentAsyncService {
             var gatewayResult = paymentGatewayPort.process(payment);
             payment.setExternalId(gatewayResult.getExternalId());
             payment.setStatus(gatewayResult.getStatus());
+            payment.setGatewayCode(gatewayResult.getGatewayCode());
+            payment.setGatewayMessage(gatewayResult.getGatewayMessage());
+            payment.setDeclineReason(gatewayResult.getDeclineReason());
             payment.setFailureReason(gatewayResult.getFailureReason());
             payment.setUpdatedAt(Instant.now());
             paymentRepositoryPort.save(payment);
@@ -48,6 +55,9 @@ public class ProcessPaymentAsyncService {
 
         } catch (Exception ex) {
             payment.setStatus(PaymentStatus.FAILED);
+            payment.setGatewayCode("TECHNICAL_ERROR");
+            payment.setGatewayMessage(ex.getMessage());
+            payment.setDeclineReason(declineReasonMapper.map("TECHNICAL_ERROR", ex.getMessage()));
             payment.setFailureReason(ex.getMessage());
             payment.setUpdatedAt(Instant.now());
             paymentRepositoryPort.save(payment);

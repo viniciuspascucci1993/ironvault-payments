@@ -19,6 +19,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -118,6 +125,9 @@ public class CreatePaymentService implements CreatePaymentUseCase {
                 PaymentStatus.CREATED,
                 PaymentMethod.valueOf(command.getPaymentMethod()),
                 command.getDescription(),
+                null,
+                null,
+                null,
                 null,
                 null,
                 Instant.now(),

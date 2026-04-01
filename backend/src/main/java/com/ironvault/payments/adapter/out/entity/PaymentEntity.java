@@ -1,5 +1,6 @@
 package com.ironvault.payments.adapter.out.entity;
 
+import com.ironvault.payments.domain.enums.DeclineReason;
 import com.ironvault.payments.domain.enums.PaymentMethod;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import jakarta.persistence.*;
@@ -25,6 +26,12 @@ public class PaymentEntity {
 
     private String description;
     private String externalId;
+
+    private String gatewayCode;
+    private String gatewayMessage;
+    @Enumerated(EnumType.STRING)
+    private DeclineReason declineReason;
+
     private String failureReason;
 
     private Instant createdAt;
@@ -39,6 +46,9 @@ public class PaymentEntity {
                          PaymentMethod paymentMethod,
                          String description,
                          String externalId,
+                         String gatewayCode,
+                         String gatewayMessage,
+                         DeclineReason declineReason,
                          String failureReason,
                          Instant createdAt,
                          Instant updatedAt) {
@@ -49,6 +59,9 @@ public class PaymentEntity {
         this.paymentMethod = paymentMethod;
         this.description = description;
         this.externalId = externalId;
+        this.gatewayCode = gatewayCode;
+        this.gatewayMessage = gatewayMessage;
+        this.declineReason = declineReason;
         this.failureReason = failureReason;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -120,6 +133,30 @@ public class PaymentEntity {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public String getGatewayCode() {
+        return gatewayCode;
+    }
+
+    public void setGatewayCode(String gatewayCode) {
+        this.gatewayCode = gatewayCode;
+    }
+
+    public String getGatewayMessage() {
+        return gatewayMessage;
+    }
+
+    public void setGatewayMessage(String gatewayMessage) {
+        this.gatewayMessage = gatewayMessage;
+    }
+
+    public DeclineReason getDeclineReason() {
+        return declineReason;
+    }
+
+    public void setDeclineReason(DeclineReason declineReason) {
+        this.declineReason = declineReason;
     }
 
     public void setCreatedAt(Instant createdAt) {
