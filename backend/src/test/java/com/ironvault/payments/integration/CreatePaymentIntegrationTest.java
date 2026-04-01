@@ -53,18 +53,18 @@ public class CreatePaymentIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should create different payments when idempotency key is not provided")
-    void shouldCreateDifferentPaymentsWithoutIdempotencyKey() {
+    @DisplayName("Should fail when idempotency key is not provided")
+    void shouldFailWhenIdempotencyKeyIsMissing() {
 
         var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
                 "BRL",
                 "PIX",
                 "test-description");
 
-        var first = createPaymentUseCase.create(cmd, null);
-        var second = createPaymentUseCase.create(cmd, null);
-
-        assertThat(first.getId()).isNotEqualTo(second.getId());
+        assertThatThrownBy(() ->
+                createPaymentUseCase.create(cmd, null)
+        ).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Idempotency-Key header is required");
     }
 
     @Test

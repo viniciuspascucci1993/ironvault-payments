@@ -12,7 +12,7 @@ import java.time.Instant;
 public class PaymentIdempotencyEntity {
 
     @Id
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String idempotencyKey;
 
     private String requestHash;

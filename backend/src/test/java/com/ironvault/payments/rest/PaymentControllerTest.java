@@ -44,6 +44,7 @@ public class PaymentControllerTest {
         );
 
         mockMvc.perform(post("/api/payments")
+                        .header("Idempotency-Key", "ironvault-" + UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -127,6 +128,7 @@ public class PaymentControllerTest {
 
         // SUA API NÃO VALIDA → então espera 201
         mockMvc.perform(post("/api/payments")
+                        .header("Idempotency-Key", "ironvault-" + UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -145,8 +147,26 @@ public class PaymentControllerTest {
 
         mockMvc.perform(post("/api/payments")
                         .header("X-Correlation-Id", "REQ-123")
+                        .header("Idempotency-Key", "ironvault-" + UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(header().exists("x-Correlation-Id")); // lowercase (Spring normaliza)
+    }
+
+    @Test
+    @DisplayName("Should return 400 when idempotency key is missing")
+    void shouldReturnBadRequestWhenIdempotencyKeyMissing() throws Exception {
+
+        PaymentRequest request = new PaymentRequest(
+                BigDecimal.valueOf(100),
+                "BRL",
+                "PIX",
+                "test-description"
+        );
+
+        mockMvc.perform(post("/api/payments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 }

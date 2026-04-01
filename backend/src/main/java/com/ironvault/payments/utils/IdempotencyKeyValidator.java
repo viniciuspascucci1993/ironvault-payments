@@ -9,7 +9,9 @@ public class IdempotencyKeyValidator {
 
     public static void validateIdempotencyKey(String key) {
 
-        if (key == null || key.isBlank()) return;
+        if (key == null || key.isBlank()) {
+            throw new IllegalArgumentException("Idempotency-Key header is required");
+        }
 
         if (!PATTERN.matcher(key).matches()) {
             throw new IllegalArgumentException(

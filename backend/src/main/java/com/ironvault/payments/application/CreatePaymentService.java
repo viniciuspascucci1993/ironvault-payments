@@ -35,6 +35,10 @@ public class CreatePaymentService implements CreatePaymentUseCase {
     @Override
     public Payment create(CreatePaymentCommand command, String idempotencyKey) {
 
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            throw new IllegalArgumentException("Idempotency-Key header is required");
+        }
+
         String requestHash = generateHash(command);
 
         // 🥇 1. CHECK ANTES (resolve fluxo sequencial)
