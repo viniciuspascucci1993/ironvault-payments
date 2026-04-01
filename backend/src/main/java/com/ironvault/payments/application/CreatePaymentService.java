@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class CreatePaymentService implements CreatePaymentUseCase {
 
+    private static final String PENDING_PAYMENT_ID = "00000000-0000-0000-0000-000000000000";
+
     private final PaymentRepositoryPort paymentRepositoryPort;
     private final PaymentIdempotencyRepositoryPort idempotencyRepository;
     private final ObjectMapper objectMapper;
@@ -42,7 +44,7 @@ public class CreatePaymentService implements CreatePaymentUseCase {
         String requestHash = generateHash(command);
 
         // 🥇 1. CHECK ANTES (resolve fluxo sequencial)
-        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+        if (!idempotencyKey.isBlank()) {
 
             var existing = idempotencyRepository.findByKey(idempotencyKey);
 
@@ -55,9 +57,7 @@ public class CreatePaymentService implements CreatePaymentUseCase {
                 }
 
                 if (existing.get().getResponse() == null) {
-                    throw new IllegalStateException(
-                            "Request is still being processed for this idempotency key"
-                    );
+                    return resolvePendingOrInFlight(existing.get());
                 }
 
                 return deserialize(existing.get().getResponse());
@@ -65,14 +65,14 @@ public class CreatePaymentService implements CreatePaymentUseCase {
         }
 
         // 🥈 2. RESERVA (resolve concorrência)
-        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+        if (!idempotencyKey.isBlank()) {
 
             try {
                 PaymentIdempotency reservation = new PaymentIdempotency(
                         idempotencyKey,
                         requestHash,
                         null,
-                        null,
+                        PENDING_PAYMENT_ID,
                         Instant.now()
                 );
 
@@ -82,7 +82,9 @@ public class CreatePaymentService implements CreatePaymentUseCase {
 
                 // outro thread já reservou
                 var existing = idempotencyRepository.findByKey(idempotencyKey)
-                        .orElseThrow();
+                        .orElseThrow(() -> new IllegalStateException(
+                                "Unable to reserve idempotency key due to persistence constraint"
+                        ));
 
                 if (!existing.getRequestHash().equals(requestHash)) {
                     throw new IllegalStateException(
@@ -91,9 +93,7 @@ public class CreatePaymentService implements CreatePaymentUseCase {
                 }
 
                 if (existing.getResponse() == null) {
-                    throw new IllegalStateException(
-                            "Request is still being processed for this idempotency key"
-                    );
+                    return resolvePendingOrInFlight(existing);
                 }
 
                 return deserialize(existing.getResponse());
@@ -117,7 +117,7 @@ public class CreatePaymentService implements CreatePaymentUseCase {
         Payment saved = paymentRepositoryPort.save(payment);
 
         // 🏁 4. UPDATE DA IDEMPOTÊNCIA
-        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+        if (!idempotencyKey.isBlank()) {
 
             var existing = idempotencyRepository.findByKey(idempotencyKey)
                     .orElseThrow();
@@ -153,6 +153,35 @@ public class CreatePaymentService implements CreatePaymentUseCase {
     }
 
     private String generateHash(CreatePaymentCommand command) {
-        return command.getAmount() + "|" + command.getCurrency();
+        return command.getAmount()
+                + "|" + command.getCurrency()
+                + "|" + command.getPaymentMethod()
+                + "|" + command.getDescription();
+    }
+
+    private Payment resolvePendingOrInFlight(PaymentIdempotency existing) {
+        if (existing.getPaymentId() == null || PENDING_PAYMENT_ID.equals(existing.getPaymentId())) {
+            throw new IllegalStateException(
+                    "Request is still being processed for this idempotency key"
+            );
+        }
+
+        try {
+            UUID paymentId = UUID.fromString(existing.getPaymentId());
+            Payment payment = paymentRepositoryPort.findById(paymentId)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Idempotency record exists but payment was not found"
+                    ));
+
+            existing.setResponse(serialize(payment));
+            existing.setPaymentId(payment.getId().toString());
+            idempotencyRepository.save(existing);
+
+            return payment;
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalStateException(
+                    "Invalid payment reference stored for this idempotency key"
+            );
+        }
     }
 }
