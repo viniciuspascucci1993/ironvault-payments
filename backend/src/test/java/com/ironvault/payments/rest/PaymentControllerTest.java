@@ -52,43 +52,8 @@ public class PaymentControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.amount").value(150))
                 .andExpect(jsonPath("$.currency").value("BRL"))
-                .andExpect(jsonPath("$.status").value("CREATED"))
-                .andExpect(jsonPath("$.paymentMethod").value("PIX"));
-    }
-
-    @Test
-    @DisplayName("Should update payment status from CREATED to PROCESSING")
-    void shouldUpdateStatusFromCreatedToProcessing() throws Exception {
-        PaymentRequest request = new PaymentRequest(
-                BigDecimal.valueOf(100),
-                "BRL",
-                "PIX",
-                "test-description"
-        );
-
-        var createResult = mockMvc.perform(post("/api/payments")
-                        .header("Idempotency-Key", "ironvault-" + UUID.randomUUID())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andReturn();
-
-        String paymentId = objectMapper.readTree(createResult.getResponse().getContentAsString())
-                .get("id")
-                .asText();
-
-        String body = """
-                {
-                  "status": "PROCESSING"
-                }
-                """;
-
-        mockMvc.perform(patch("/api/payments/{id}/status", paymentId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PROCESSING"))
-                .andExpect(jsonPath("$.failureReason").isEmpty());
+                .andExpect(jsonPath("$.paymentMethod").value("PIX"));
     }
 
     @Test
@@ -112,11 +77,23 @@ public class PaymentControllerTest {
                 .get("id")
                 .asText();
 
-        String invalidTransitionBody = """
+        String approveBody = """
                 {
                   "status": "APPROVED"
                 }
                 """;
+
+        String invalidTransitionBody = """
+                {
+                  "status": "PROCESSING"
+                }
+                """;
+
+        mockMvc.perform(patch("/api/payments/{id}/status", paymentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(approveBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("APPROVED"));
 
         mockMvc.perform(patch("/api/payments/{id}/status", paymentId)
                         .contentType(MediaType.APPLICATION_JSON)

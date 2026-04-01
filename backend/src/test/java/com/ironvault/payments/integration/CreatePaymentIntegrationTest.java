@@ -181,18 +181,29 @@ public class CreatePaymentIntegrationTest {
 
         assertThatThrownBy(() ->
                 updatePaymentStatusUseCase.updateStatus(
-                        new UpdatePaymentStatusCommand(created.getId(), PaymentStatus.APPROVED, null)
+                        new UpdatePaymentStatusCommand(created.getId(), PaymentStatus.CREATED, null)
                 )
         ).isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Invalid status transition");
 
-        var processing = updatePaymentStatusUseCase.updateStatus(
-                new UpdatePaymentStatusCommand(created.getId(), PaymentStatus.PROCESSING, null)
+        var approved = updatePaymentStatusUseCase.updateStatus(
+                new UpdatePaymentStatusCommand(created.getId(), PaymentStatus.APPROVED, null)
         );
-        assertThat(processing.getStatus()).isEqualTo(PaymentStatus.PROCESSING);
+        assertThat(approved.getStatus()).isEqualTo(PaymentStatus.APPROVED);
 
+        assertThatThrownBy(() ->
+                updatePaymentStatusUseCase.updateStatus(
+                        new UpdatePaymentStatusCommand(created.getId(), PaymentStatus.PROCESSING, null)
+                )
+        ).isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Invalid status transition");
+
+        var processingPayment = createPaymentUseCase.create(
+                new CreatePaymentCommand(BigDecimal.valueOf(251), "BRL", "PIX", "transition-failure-test"),
+                "ironvault-transition-test-2"
+        );
         var failed = updatePaymentStatusUseCase.updateStatus(
-                new UpdatePaymentStatusCommand(created.getId(), PaymentStatus.FAILED, "Gateway timeout")
+                new UpdatePaymentStatusCommand(processingPayment.getId(), PaymentStatus.FAILED, "Gateway timeout")
         );
         assertThat(failed.getStatus()).isEqualTo(PaymentStatus.FAILED);
         assertThat(failed.getFailureReason()).isEqualTo("Gateway timeout");
