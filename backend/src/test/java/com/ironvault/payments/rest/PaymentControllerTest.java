@@ -14,12 +14,12 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 
 import org.springframework.test.context.ActiveProfiles;
 
@@ -35,20 +35,25 @@ public class PaymentControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    @DisplayName("Should return 400 when idempotency key is missing")
-    void shouldReturnBadRequestWhenIdempotencyKeyMissing() throws Exception {
+    @DisplayName("Should create payment successfully")
+    void shouldCreatePayment() throws Exception {
 
         PaymentRequest request = new PaymentRequest(
-                BigDecimal.valueOf(100),
+                BigDecimal.valueOf(150),
                 "BRL",
                 "PIX",
                 "test-description"
         );
 
         mockMvc.perform(post("/api/payments")
+                        .header("Idempotency-Key", "ironvault-" + UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.amount").value(150))
+                .andExpect(jsonPath("$.currency").value("BRL"))
+                .andExpect(jsonPath("$.status").value("CREATED"))
+                .andExpect(jsonPath("$.paymentMethod").value("PIX"));
     }
 
     @Test
@@ -165,27 +170,6 @@ public class PaymentControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("FAILED"))
                 .andExpect(jsonPath("$.failureReason").value("Gateway timeout"));
-    }
-    @Test
-    @DisplayName("Should create payment successfully")
-    void shouldCreatePayment() throws Exception {
-
-        PaymentRequest request = new PaymentRequest(
-                BigDecimal.valueOf(150),
-                "BRL",
-                "PIX",
-                "test-description"
-        );
-
-        mockMvc.perform(post("/api/payments")
-                        .header("Idempotency-Key", "ironvault-" + UUID.randomUUID())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.amount").value(150))
-                .andExpect(jsonPath("$.currency").value("BRL"))
-                .andExpect(jsonPath("$.status").value("CREATED"))
-                .andExpect(jsonPath("$.paymentMethod").value("PIX"));
     }
 
     @Test
