@@ -19,6 +19,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
@@ -32,6 +34,138 @@ public class PaymentControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Test
+    @DisplayName("Should return 400 when idempotency key is missing")
+    void shouldReturnBadRequestWhenIdempotencyKeyMissing() throws Exception {
+
+        PaymentRequest request = new PaymentRequest(
+                BigDecimal.valueOf(100),
+                "BRL",
+                "PIX",
+                "test-description"
+        );
+
+        mockMvc.perform(post("/api/payments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should update payment status from CREATED to PROCESSING")
+    void shouldUpdateStatusFromCreatedToProcessing() throws Exception {
+        PaymentRequest request = new PaymentRequest(
+                BigDecimal.valueOf(100),
+                "BRL",
+                "PIX",
+                "test-description"
+        );
+
+        var createResult = mockMvc.perform(post("/api/payments")
+                        .header("Idempotency-Key", "ironvault-" + UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String paymentId = objectMapper.readTree(createResult.getResponse().getContentAsString())
+                .get("id")
+                .asText();
+
+        String body = """
+                {
+                  "status": "PROCESSING"
+                }
+                """;
+
+        mockMvc.perform(patch("/api/payments/{id}/status", paymentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PROCESSING"))
+                .andExpect(jsonPath("$.failureReason").isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should return 409 for invalid status transition")
+    void shouldReturnConflictForInvalidStatusTransition() throws Exception {
+        PaymentRequest request = new PaymentRequest(
+                BigDecimal.valueOf(100),
+                "BRL",
+                "PIX",
+                "test-description"
+        );
+
+        var createResult = mockMvc.perform(post("/api/payments")
+                        .header("Idempotency-Key", "ironvault-" + UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String paymentId = objectMapper.readTree(createResult.getResponse().getContentAsString())
+                .get("id")
+                .asText();
+
+        String invalidTransitionBody = """
+                {
+                  "status": "APPROVED"
+                }
+                """;
+
+        mockMvc.perform(patch("/api/payments/{id}/status", paymentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidTransitionBody))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    @DisplayName("Should persist failure reason when status becomes FAILED")
+    void shouldPersistFailureReasonWhenFailed() throws Exception {
+        PaymentRequest request = new PaymentRequest(
+                BigDecimal.valueOf(100),
+                "BRL",
+                "PIX",
+                "test-description"
+        );
+
+        var createResult = mockMvc.perform(post("/api/payments")
+                        .header("Idempotency-Key", "ironvault-" + UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String paymentId = objectMapper.readTree(createResult.getResponse().getContentAsString())
+                .get("id")
+                .asText();
+
+        String processingBody = """
+                {
+                  "status": "PROCESSING"
+                }
+                """;
+
+        String failedBody = """
+                {
+                  "status": "FAILED",
+                  "failureReason": "Gateway timeout"
+                }
+                """;
+
+        mockMvc.perform(patch("/api/payments/{id}/status", paymentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(processingBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PROCESSING"));
+
+        mockMvc.perform(patch("/api/payments/{id}/status", paymentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(failedBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("FAILED"))
+                .andExpect(jsonPath("$.failureReason").value("Gateway timeout"));
+    }
     @Test
     @DisplayName("Should create payment successfully")
     void shouldCreatePayment() throws Exception {
@@ -153,20 +287,4 @@ public class PaymentControllerTest {
                 .andExpect(header().exists("x-Correlation-Id")); // lowercase (Spring normaliza)
     }
 
-    @Test
-    @DisplayName("Should return 400 when idempotency key is missing")
-    void shouldReturnBadRequestWhenIdempotencyKeyMissing() throws Exception {
-
-        PaymentRequest request = new PaymentRequest(
-                BigDecimal.valueOf(100),
-                "BRL",
-                "PIX",
-                "test-description"
-        );
-
-        mockMvc.perform(post("/api/payments")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
-    }
 }

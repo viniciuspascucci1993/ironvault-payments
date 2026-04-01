@@ -1,7 +1,12 @@
 package com.ironvault.payments.integration;
 
+import com.ironvault.payments.domain.enums.PaymentStatus;
+
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentCommand;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentUseCase;
+import com.ironvault.payments.domain.port.in.payment.UpdatePaymentStatusCommand;
+import com.ironvault.payments.domain.port.in.payment.UpdatePaymentStatusUseCase;
+import com.ironvault.payments.domain.port.out.PaymentIdempotencyRepositoryPort;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +24,6 @@ import java.util.concurrent.Callable;
 
 import org.springframework.test.context.ActiveProfiles;
 
-import com.ironvault.payments.domain.port.out.PaymentIdempotencyRepositoryPort;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -30,6 +34,9 @@ public class CreatePaymentIntegrationTest {
 
     @Autowired
     private PaymentIdempotencyRepositoryPort paymentIdempotencyRepositoryPort;
+
+    @Autowired
+    private UpdatePaymentStatusUseCase updatePaymentStatusUseCase;
 
     @Test
     @DisplayName("Should return same payment when using the same idempotency key")
@@ -128,6 +135,58 @@ public class CreatePaymentIntegrationTest {
         assertThatThrownBy(() ->
                 createPaymentUseCase.create(cmd2, key)
         ).isInstanceOf(IllegalStateException.class);
+    }
 
+    @Test
+    @DisplayName("Should throw conflict when same key is reused with different description")
+    void shouldThrowConflictWhenDescriptionChanges() {
+        String key = "ironvault-test-789";
+
+        var cmd1 = new CreatePaymentCommand(BigDecimal.valueOf(200),
+                "BRL",
+                "PIX",
+                "description-1");
+        var cmd2 = new CreatePaymentCommand(BigDecimal.valueOf(200),
+                "BRL",
+                "PIX",
+                "description-2");
+
+        createPaymentUseCase.create(cmd1, key);
+
+        assertThatThrownBy(() ->
+                createPaymentUseCase.create(cmd2, key)
+        ).isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("different payload");
+    }
+
+    @Test
+    @DisplayName("Should enforce valid payment status transitions")
+    void shouldEnforceValidPaymentStatusTransitions() {
+        String key = "ironvault-transition-test-1";
+
+        var cmd = new CreatePaymentCommand(BigDecimal.valueOf(250),
+                "BRL",
+                "PIX",
+                "transition-test");
+
+        var created = createPaymentUseCase.create(cmd, key);
+
+        assertThatThrownBy(() ->
+                updatePaymentStatusUseCase.updateStatus(
+                        new UpdatePaymentStatusCommand(created.getId(), PaymentStatus.APPROVED, null)
+                )
+        ).isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Invalid status transition");
+
+        var processing = updatePaymentStatusUseCase.updateStatus(
+                new UpdatePaymentStatusCommand(created.getId(), PaymentStatus.PROCESSING, null)
+        );
+        assertThat(processing.getStatus()).isEqualTo(PaymentStatus.PROCESSING);
+
+        var failed = updatePaymentStatusUseCase.updateStatus(
+                new UpdatePaymentStatusCommand(created.getId(), PaymentStatus.FAILED, "Gateway timeout")
+        );
+        assertThat(failed.getStatus()).isEqualTo(PaymentStatus.FAILED);
+        assertThat(failed.getFailureReason()).isEqualTo("Gateway timeout");
     }
 }

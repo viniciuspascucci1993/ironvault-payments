@@ -3,6 +3,9 @@ package com.ironvault.payments.adapter.in.web;
 import com.ironvault.payments.adapter.in.dto.PaymentRequest;
 import com.ironvault.payments.adapter.in.dto.PaymentResponse;
 import com.ironvault.payments.adapter.in.mapper.PaymentResponseMapper;
+import com.ironvault.payments.adapter.in.dto.UpdatePaymentStatusRequest;
+import com.ironvault.payments.domain.port.in.payment.UpdatePaymentStatusCommand;
+import com.ironvault.payments.domain.port.in.payment.UpdatePaymentStatusUseCase;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentCommand;
@@ -28,16 +31,19 @@ public class PaymentController {
     private final CreatePaymentUseCase createPaymentUseCase;
     private final GetAllPaymentsUseCase getAllPaymentsUseCase;
     private final GetPaymentByIdUseCase getPaymentByIdUseCase;
+    private final UpdatePaymentStatusUseCase updatePaymentStatusUseCase;
 
     private final PaymentResponseMapper mapper;
 
     public PaymentController(CreatePaymentUseCase createPaymentUseCase,
                              GetAllPaymentsUseCase getAllPaymentsUseCase,
                              GetPaymentByIdUseCase getPaymentByIdUseCase,
+                             UpdatePaymentStatusUseCase updatePaymentStatusUseCase,
                              PaymentResponseMapper mapper) {
         this.createPaymentUseCase = createPaymentUseCase;
         this.getAllPaymentsUseCase = getAllPaymentsUseCase;
         this.getPaymentByIdUseCase = getPaymentByIdUseCase;
+        this.updatePaymentStatusUseCase = updatePaymentStatusUseCase;
         this.mapper = mapper;
     }
 
@@ -57,6 +63,29 @@ public class PaymentController {
         );
 
         return ResponseEntity.status(201).body(mapper.toResponse(payment));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<PaymentResponse> updateStatus(
+            @PathVariable("id") UUID id,
+            @Valid @RequestBody UpdatePaymentStatusRequest request) {
+
+        PaymentStatus targetStatus;
+        try {
+            targetStatus = PaymentStatus.valueOf(request.getStatus().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Invalid status: " + request.getStatus());
+        }
+
+        Payment updated = updatePaymentStatusUseCase.updateStatus(
+                new UpdatePaymentStatusCommand(
+                        id,
+                        targetStatus,
+                        request.getFailureReason()
+                )
+        );
+
+        return ResponseEntity.ok(mapper.toResponse(updated));
     }
 
     @GetMapping("/{id}")
