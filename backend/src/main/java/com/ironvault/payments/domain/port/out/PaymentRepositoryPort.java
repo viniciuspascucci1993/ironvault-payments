@@ -23,4 +23,6 @@ public interface PaymentRepositoryPort {
             BigDecimal minAmount,
             BigDecimal maxAmount,
             Pageable pageable);
+
+    Optional<Payment> findByExternalId(String externalId);
 }

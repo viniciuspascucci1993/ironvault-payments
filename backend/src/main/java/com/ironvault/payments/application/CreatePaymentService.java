@@ -24,13 +24,16 @@ public class CreatePaymentService implements CreatePaymentUseCase {
 
     private final PaymentRepositoryPort paymentRepositoryPort;
     private final PaymentIdempotencyRepositoryPort idempotencyRepository;
+    private final ProcessPaymentAsyncService processPaymentAsyncService;
     private final ObjectMapper objectMapper;
 
     public CreatePaymentService(PaymentRepositoryPort paymentRepositoryPort,
                                 PaymentIdempotencyRepositoryPort idempotencyRepository,
+                                ProcessPaymentAsyncService processPaymentAsyncService,
                                 ObjectMapper objectMapper) {
         this.paymentRepositoryPort = paymentRepositoryPort;
         this.idempotencyRepository = idempotencyRepository;
+        this.processPaymentAsyncService = processPaymentAsyncService;
         this.objectMapper = objectMapper;
     }
 
@@ -115,6 +118,9 @@ public class CreatePaymentService implements CreatePaymentUseCase {
         );
 
         Payment saved = paymentRepositoryPort.save(payment);
+        saved.setStatus(PaymentStatus.PROCESSING);
+        saved.setUpdatedAt(Instant.now());
+        Payment processingPayment = paymentRepositoryPort.save(saved);
 
         // 🏁 4. UPDATE DA IDEMPOTÊNCIA
         if (!idempotencyKey.isBlank()) {
@@ -122,18 +128,20 @@ public class CreatePaymentService implements CreatePaymentUseCase {
             var existing = idempotencyRepository.findByKey(idempotencyKey)
                     .orElseThrow();
 
-            existing.setResponse(serialize(saved));
-            existing.setPaymentId(saved.getId().toString());
+            existing.setResponse(serialize(processingPayment));
+            existing.setPaymentId(processingPayment.getId().toString());
 
             idempotencyRepository.save(existing);
         }
+
+        processPaymentAsyncService.processPayment(processingPayment.getId());
 
         log.info("Creating payment amount={} currency={}", command.getAmount(), command.getCurrency());
         log.info("POST /payments - Creating payment amount={} currency={}",
                 command.getAmount(),
                 command.getCurrency());
 
-        return saved;
+        return processingPayment;
     }
 
     private String serialize(Payment payment) {

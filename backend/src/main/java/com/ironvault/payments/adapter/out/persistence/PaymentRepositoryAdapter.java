@@ -53,4 +53,11 @@ public class PaymentRepositoryAdapter implements PaymentRepositoryPort {
         return paymentJpaRepository.findAll(specificationFilter, pageable)
                 .map(mapper::toDomain);
     }
+
+    @Override
+    public Optional<Payment> findByExternalId(String externalId) {
+        return paymentJpaRepository.findByExternalId(externalId)
+                .map(mapper::toDomain);
+    }
+
 }

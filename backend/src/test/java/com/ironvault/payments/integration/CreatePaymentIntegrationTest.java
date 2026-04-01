@@ -2,17 +2,22 @@ package com.ironvault.payments.integration;
 
 import com.ironvault.payments.domain.enums.PaymentStatus;
 
+import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentCommand;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentUseCase;
 import com.ironvault.payments.domain.port.in.payment.UpdatePaymentStatusCommand;
 import com.ironvault.payments.domain.port.in.payment.UpdatePaymentStatusUseCase;
 import com.ironvault.payments.domain.port.out.PaymentIdempotencyRepositoryPort;
+import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,6 +42,9 @@ public class CreatePaymentIntegrationTest {
 
     @Autowired
     private UpdatePaymentStatusUseCase updatePaymentStatusUseCase;
+
+    @Autowired
+    private PaymentRepositoryPort paymentRepositoryPort;
 
     @Test
     @DisplayName("Should return same payment when using the same idempotency key")
@@ -188,5 +196,44 @@ public class CreatePaymentIntegrationTest {
         );
         assertThat(failed.getStatus()).isEqualTo(PaymentStatus.FAILED);
         assertThat(failed.getFailureReason()).isEqualTo("Gateway timeout");
+    }
+
+    @Test
+    @DisplayName("Should process payment asynchronously and mark failed on technical error")
+    void shouldProcessPaymentAsyncFailurePath() {
+        String key = "ironvault-async-failed-1";
+
+        var cmd = new CreatePaymentCommand(new BigDecimal("14.00"),
+                "BRL",
+                "PIX",
+                "async-failed");
+
+        var created = createPaymentUseCase.create(cmd, key);
+
+        assertThat(created.getStatus()).isEqualTo(PaymentStatus.PROCESSING);
+
+        var finalized = awaitFinalStatus(created.getId());
+        assertThat(finalized.getStatus()).isEqualTo(PaymentStatus.FAILED);
+        assertThat(finalized.getFailureReason()).contains("Mock gateway timeout");
+    }
+
+    private Payment awaitFinalStatus(UUID paymentId) {
+        Instant deadline = Instant.now().plus(Duration.ofSeconds(3));
+
+        while (Instant.now().isBefore(deadline)) {
+            var current = paymentRepositoryPort.findById(paymentId).orElseThrow();
+            if (current.getStatus() != PaymentStatus.PROCESSING && current.getStatus() != PaymentStatus.CREATED) {
+                return current;
+            }
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+
+        return paymentRepositoryPort.findById(paymentId).orElseThrow();
     }
 }

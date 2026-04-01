@@ -270,5 +270,4 @@ public class PaymentControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(header().exists("x-Correlation-Id")); // lowercase (Spring normaliza)
     }
-
 }
