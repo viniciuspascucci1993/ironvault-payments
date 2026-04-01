@@ -92,21 +92,7 @@ public class PaymentController {
     public ResponseEntity<PaymentResponse> getById(@PathVariable("id")UUID id) {
 
         Payment payment = getPaymentByIdUseCase.getById(id);
-
-        PaymentResponse response = new PaymentResponse(
-                payment.getId(),
-                payment.getAmount(),
-                payment.getCurrency(),
-                payment.getStatus().name(),
-                payment.getDescription(),
-                payment.getExternalId(),
-                payment.getFailureReason(),
-                payment.getPaymentMethod().name(),
-                payment.getUpdatedAt(),
-                payment.getCreatedAt()
-        );
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(mapper.toResponse(payment));
     }
 
     @GetMapping
@@ -152,18 +138,7 @@ public class PaymentController {
         PageResult<PaymentResponse> response =
                 getAllPaymentsUseCase
                         .getAllWithFilters(filter, pageQuery)
-                        .map((Payment p) -> new PaymentResponse(
-                                p.getId(),
-                                p.getAmount(),
-                                p.getCurrency(),
-                                p.getDescription(),
-                                p.getStatus().name(),
-                                p.getPaymentMethod().name(),
-                                p.getFailureReason(),
-                                p.getExternalId(),
-                                p.getCreatedAt(),
-                                p.getUpdatedAt()
-                        ));
+                        .map(mapper::toResponse);
 
         return ResponseEntity.ok(response);
     }
