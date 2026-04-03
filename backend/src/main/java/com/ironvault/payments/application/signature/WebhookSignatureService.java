@@ -29,15 +29,15 @@ public class WebhookSignatureService {
             throw new IllegalArgumentException("Missing webhook timestamp");
         }
 
-        long timeStasmp;
+        long timestamp;
         try {
-            timeStasmp = Long.parseLong(timestampHeader);
+            timestamp = Long.parseLong(timestampHeader);
         } catch (NumberFormatException ex) {
             throw new IllegalArgumentException("Invalid webhook timestamp");
         }
 
         long now = Instant.now().getEpochSecond();
-        if (Math.abs(now - timeStasmp) > toleranceSeconds) {
+        if (Math.abs(now - timestamp) > toleranceSeconds) {
             throw new IllegalArgumentException("Webhook timestamp outside tolerance window");
         }
 

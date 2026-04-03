@@ -6,7 +6,6 @@ import com.ironvault.payments.application.mapper.GatewayDeclineReasonMapper;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -14,30 +13,24 @@ import java.time.Instant;
 @Service
 public class HandleMockWebhookService {
 
-        private final PaymentRepositoryPort paymentRepositoryPort;
-        private final PaymentWebhookEventJpaRepository webhookEventRepository;
-        private final GatewayDeclineReasonMapper declineReasonMapper;
-        private final String webhookSecret;
+    private final PaymentRepositoryPort paymentRepositoryPort;
+    private final PaymentWebhookEventJpaRepository webhookEventRepository;
+    private final GatewayDeclineReasonMapper declineReasonMapper;
 
-        public HandleMockWebhookService(PaymentRepositoryPort paymentRepositoryPort,
-                                        PaymentWebhookEventJpaRepository webhookEventRepository,
-                                        GatewayDeclineReasonMapper declineReasonMapper,
-                                        @Value("${app.webhook.mock-secret:ironvault-webhook-secret}") String webhookSecret) {
-            this.paymentRepositoryPort = paymentRepositoryPort;
-            this.webhookEventRepository = webhookEventRepository;
-            this.declineReasonMapper = declineReasonMapper;
-            this.webhookSecret = webhookSecret;
-        }
+    public HandleMockWebhookService(PaymentRepositoryPort paymentRepositoryPort,
+                                    PaymentWebhookEventJpaRepository webhookEventRepository,
+                                    GatewayDeclineReasonMapper declineReasonMapper) {
+        this.paymentRepositoryPort = paymentRepositoryPort;
+        this.webhookEventRepository = webhookEventRepository;
+        this.declineReasonMapper = declineReasonMapper;
+    }
 
-    public boolean handle(String signature,
-                          String eventId,
+    public boolean handle(String eventId,
                           String externalId,
                           String status,
                           String gatewayCode,
                           String gatewayMessage,
                           String failureReason) {
-
-        validateSignature(signature);
 
         if (webhookEventRepository.existsById(eventId)) {
             return false;
@@ -68,12 +61,6 @@ public class HandleMockWebhookService {
         return true;
     }
 
-    private void validateSignature(String signature) {
-        if (signature == null || signature.isBlank() || !webhookSecret.equals(signature)) {
-            throw new IllegalArgumentException("Invalid webhook signature");
-        }
-    }
-
     private PaymentStatus parseStatus(String status) {
         try {
             return PaymentStatus.valueOf(status.toUpperCase());
@@ -83,9 +70,7 @@ public class HandleMockWebhookService {
     }
 
     private String normalizeReason(String reason) {
-        if (reason == null) {
-            return null;
-        }
+        if (reason == null) return null;
         String normalized = reason.trim();
         return normalized.isEmpty() ? null : normalized;
     }
