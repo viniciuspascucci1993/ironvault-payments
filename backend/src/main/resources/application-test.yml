@@ -13,3 +13,4 @@ spring:
 app:
   webhook:
     mock-secret: ironvault-webhook-secret
+    signature-tolerance-seconds: 300

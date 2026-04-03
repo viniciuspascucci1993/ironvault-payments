@@ -68,22 +68,6 @@ public class HandleMockWebhookService {
         return true;
     }
 
-    public boolean handle(String signature,
-                          String eventId,
-                          String externalId,
-                          String status,
-                          String failureReason) {
-        return handle(
-                signature,
-                eventId,
-                externalId,
-                status,
-                null,
-                failureReason,
-                failureReason
-        );
-    }
-
     private void validateSignature(String signature) {
         if (signature == null || signature.isBlank() || !webhookSecret.equals(signature)) {
             throw new IllegalArgumentException("Invalid webhook signature");
