@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: payments-backend
+
+  datasource:
+    url: jdbc:postgresql://localhost:5490/ironvault
+    username: ironvault
+    password: ironvault
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8080
+
+app:
+  webhook:
+    mock-secret: ironvault-webhook-secret
