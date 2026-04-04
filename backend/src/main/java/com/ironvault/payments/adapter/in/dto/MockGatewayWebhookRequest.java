@@ -17,5 +17,9 @@ public class MockGatewayWebhookRequest {
     private String externalId;
     @NotBlank(message = "status is required")
     private String status;
+
+    private String gatewayCode;
+    private String gatewayMessage;
+
     private String failureReason;
 }
