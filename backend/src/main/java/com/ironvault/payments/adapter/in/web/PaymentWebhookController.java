@@ -3,6 +3,7 @@ package com.ironvault.payments.adapter.in.web;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironvault.payments.adapter.in.dto.MockGatewayWebhookRequest;
 import com.ironvault.payments.application.HandleMockWebhookService;
+import com.ironvault.payments.application.WebhookProcessingService;
 import com.ironvault.payments.application.signature.WebhookSignatureService;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
@@ -20,16 +21,19 @@ public class PaymentWebhookController {
 
     private final WebhookSignatureService webhookSignatureService;
     private final HandleMockWebhookService handleMockWebhookService;
+    private final WebhookProcessingService webhookProcessingService;
     private final ObjectMapper objectMapper;
     private final Validator validator;
 
 
     public PaymentWebhookController(WebhookSignatureService webhookSignatureService,
                                     HandleMockWebhookService handleMockWebhookService,
+                                    WebhookProcessingService webhookProcessingService,
                                     ObjectMapper objectMapper,
                                     Validator validator) {
         this.webhookSignatureService = webhookSignatureService;
         this.handleMockWebhookService = handleMockWebhookService;
+        this.webhookProcessingService = webhookProcessingService;
         this.objectMapper = objectMapper;
         this.validator = validator;
     }
@@ -52,7 +56,7 @@ public class PaymentWebhookController {
             throw new IllegalArgumentException("Invalid webhook payload - " + message);
         }
 
-        boolean processed = handleMockWebhookService.handle(
+        webhookProcessingService.process(
                 request.getEventId(),
                 request.getExternalId(),
                 request.getStatus(),
@@ -61,15 +65,8 @@ public class PaymentWebhookController {
                 request.getFailureReason()
         );
 
-        if (!processed) {
-            return ResponseEntity.ok(Map.of(
-                    "processed", false,
-                    "message", "Event already processed"
-            ));
-        }
-
-        return ResponseEntity.ok(Map.of(
-                "processed", true,
+        return ResponseEntity.accepted().body(Map.of(
+                "received", true,
                 "eventId", request.getEventId()
         ));
     }

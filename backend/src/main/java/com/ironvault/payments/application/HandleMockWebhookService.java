@@ -1,6 +1,6 @@
 package com.ironvault.payments.application;
 
-import com.ironvault.payments.adapter.out.entity.PaymentWebhookEventEntity;
+import com.ironvault.payments.adapter.out.entity.webhook.PaymentWebhookEventEntity;
 import com.ironvault.payments.adapter.out.persistence.PaymentWebhookEventJpaRepository;
 import com.ironvault.payments.application.mapper.GatewayDeclineReasonMapper;
 import com.ironvault.payments.domain.enums.PaymentStatus;

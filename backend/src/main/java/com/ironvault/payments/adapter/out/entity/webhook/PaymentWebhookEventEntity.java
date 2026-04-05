@@ -1,4 +1,4 @@
-package com.ironvault.payments.adapter.out.entity;
+package com.ironvault.payments.adapter.out.entity.webhook;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
