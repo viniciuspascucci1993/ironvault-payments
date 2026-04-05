@@ -74,6 +74,18 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- SPRING RETRY -->
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+        </dependency>
+
+        <!-- SPRING ASPECTS (necessário pro @Retryable funcionar via AOP) -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+        </dependency>
+
         <!-- TEST -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

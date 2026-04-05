@@ -62,9 +62,9 @@ public class WebhookSignatureService {
     private boolean constantTimeEquals(String a, String b) {
         byte[] x = a.getBytes(StandardCharsets.UTF_8);
         byte[] y = b.getBytes(StandardCharsets.UTF_8);
-        if (x.length != y.length) return false;
-        int result = 0;
-        for (int i = 0; i < x.length; i++) result |= x[i] ^ y[i];
+        int result = x.length ^ y.length;
+        int len = Math.min(x.length, y.length);
+        for (int i = 0; i < len; i++) result |= x[i] ^ y[i];
         return result == 0;
     }
 }
