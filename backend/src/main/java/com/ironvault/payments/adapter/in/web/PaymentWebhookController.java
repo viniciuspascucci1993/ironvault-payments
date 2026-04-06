@@ -20,19 +20,16 @@ import java.util.stream.Collectors;
 public class PaymentWebhookController {
 
     private final WebhookSignatureService webhookSignatureService;
-    private final HandleMockWebhookService handleMockWebhookService;
     private final WebhookProcessingService webhookProcessingService;
     private final ObjectMapper objectMapper;
     private final Validator validator;
 
 
     public PaymentWebhookController(WebhookSignatureService webhookSignatureService,
-                                    HandleMockWebhookService handleMockWebhookService,
                                     WebhookProcessingService webhookProcessingService,
                                     ObjectMapper objectMapper,
                                     Validator validator) {
         this.webhookSignatureService = webhookSignatureService;
-        this.handleMockWebhookService = handleMockWebhookService;
         this.webhookProcessingService = webhookProcessingService;
         this.objectMapper = objectMapper;
         this.validator = validator;
