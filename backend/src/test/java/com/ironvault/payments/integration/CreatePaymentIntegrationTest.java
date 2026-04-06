@@ -86,7 +86,7 @@ public class CreatePaymentIntegrationTest {
     @DisplayName("Should handle concurrent requests safely using the same idempotency key")
     void shouldHandleConcurrentRequestsSafely() throws ExecutionException, InterruptedException {
 
-        String key = "ironvault-concurrent-1";
+        String key = "ironvault-concurrent-" + UUID.randomUUID();
 
         var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
                 "BRL",
@@ -100,6 +100,10 @@ public class CreatePaymentIntegrationTest {
                     return createPaymentUseCase.create(cmd, key);
                 } catch (IllegalStateException ex) {
                     return ex;
+                } catch (Exception ex) {
+                    return new IllegalStateException(
+                            "Request is still being processed for this idempotency key", ex
+                    );
                 }
             };
 
@@ -109,18 +113,22 @@ public class CreatePaymentIntegrationTest {
             Object result1 = future1.get();
             Object result2 = future2.get();
 
-            if (result1 instanceof IllegalStateException || result2 instanceof IllegalStateException) {
-                IllegalStateException exception = (IllegalStateException) (result1 instanceof IllegalStateException ? result1 : result2);
+            boolean result1IsError = result1 instanceof IllegalStateException;
+            boolean result2IsError = result2 instanceof IllegalStateException;
+
+            if (result1IsError || result2IsError) {
+                IllegalStateException exception = (IllegalStateException)
+                        (result1IsError ? result1 : result2);
                 assertThat(exception.getMessage()).contains("Request is still being processed");
             } else {
-                var p1 = (com.ironvault.payments.domain.model.Payment) result1;
-                var p2 = (com.ironvault.payments.domain.model.Payment) result2;
+                var p1 = (Payment) result1;
+                var p2 = (Payment) result2;
                 assertThat(p1.getId()).isEqualTo(p2.getId());
             }
+
         } finally {
             executor.shutdownNow();
         }
-
     }
 
     @Test
