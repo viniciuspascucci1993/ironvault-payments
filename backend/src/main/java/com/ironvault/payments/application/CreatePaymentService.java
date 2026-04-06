@@ -1,6 +1,9 @@
 package com.ironvault.payments.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ironvault.payments.adapter.out.entity.outbox.OutboxEventEntity;
+import com.ironvault.payments.adapter.out.persistence.OutboxEventRepository;
+import com.ironvault.payments.domain.enums.OutboxEventStatus;
 import com.ironvault.payments.domain.enums.PaymentMethod;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
@@ -26,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -38,20 +42,21 @@ public class CreatePaymentService implements CreatePaymentUseCase {
 
     private final PaymentRepositoryPort paymentRepositoryPort;
     private final PaymentIdempotencyRepositoryPort idempotencyRepository;
-    private final ProcessPaymentAsyncService processPaymentAsyncService;
+    private final OutboxEventRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
 
     public CreatePaymentService(PaymentRepositoryPort paymentRepositoryPort,
                                 PaymentIdempotencyRepositoryPort idempotencyRepository,
-                                ProcessPaymentAsyncService processPaymentAsyncService,
+                                OutboxEventRepository outboxEventRepository,
                                 ObjectMapper objectMapper) {
         this.paymentRepositoryPort = paymentRepositoryPort;
         this.idempotencyRepository = idempotencyRepository;
-        this.processPaymentAsyncService = processPaymentAsyncService;
+        this.outboxEventRepository = outboxEventRepository;
         this.objectMapper = objectMapper;
     }
 
     @Override
+    @Transactional
     public Payment create(CreatePaymentCommand command, String idempotencyKey) {
 
         if (idempotencyKey == null || idempotencyKey.isBlank()) {
@@ -151,9 +156,13 @@ public class CreatePaymentService implements CreatePaymentUseCase {
             idempotencyRepository.save(existing);
         }
 
-        processPaymentAsyncService.processPayment(processingPayment.getId());
+        outboxEventRepository.save(new OutboxEventEntity(
+                processingPayment.getId(),
+                OutboxEventStatus.PENDING,
+                Instant.now()
+        ));
 
-        log.info("Creating payment amount={} currency={}", command.getAmount(), command.getCurrency());
+        log.info("Payment created and outbox event saved. paymentId={}", processingPayment.getId());
         log.info("POST /payments - Creating payment amount={} currency={}",
                 command.getAmount(),
                 command.getCurrency());
