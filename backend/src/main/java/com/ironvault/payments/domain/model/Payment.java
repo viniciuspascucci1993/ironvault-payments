@@ -1,13 +1,16 @@
 package com.ironvault.payments.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.ironvault.payments.domain.enums.DeclineReason;
 import com.ironvault.payments.domain.enums.PaymentMethod;
 import com.ironvault.payments.domain.enums.PaymentStatus;
+import jakarta.persistence.Column;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Payment {
 
     private UUID id;
@@ -25,11 +28,16 @@ public class Payment {
     private String gatewayMessage;
     private DeclineReason declineReason;
 
+    private String pixQrCode;
+    private String pixCopyPaste;
+
     private String failureReason;
 
 
     private Instant createdAt;
     private Instant updatedAt;
+
+    public Payment() {}
 
     public Payment(UUID id, BigDecimal amount, String currency,
                    PaymentStatus status,
@@ -39,6 +47,8 @@ public class Payment {
                    String gatewayCode,
                    String gatewayMessage,
                    DeclineReason declineReason,
+                   String pixQrCode,
+                   String pixCopyPaste,
                    String failureReason,
                    Instant createdAt,
                    Instant updatedAt) {
@@ -52,6 +62,8 @@ public class Payment {
         this.gatewayCode = gatewayCode;
         this.gatewayMessage = gatewayMessage;
         this.declineReason = declineReason;
+        this.pixQrCode = pixQrCode;
+        this.pixCopyPaste = pixCopyPaste;
         this.failureReason = failureReason;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -147,6 +159,22 @@ public class Payment {
 
     public DeclineReason getDeclineReason() {
         return declineReason;
+    }
+
+    public String getPixQrCode() {
+        return pixQrCode;
+    }
+
+    public void setPixQrCode(String pixQrCode) {
+        this.pixQrCode = pixQrCode;
+    }
+
+    public String getPixCopyPaste() {
+        return pixCopyPaste;
+    }
+
+    public void setPixCopyPaste(String pixCopyPaste) {
+        this.pixCopyPaste = pixCopyPaste;
     }
 
     public void setDeclineReason(DeclineReason declineReason) {

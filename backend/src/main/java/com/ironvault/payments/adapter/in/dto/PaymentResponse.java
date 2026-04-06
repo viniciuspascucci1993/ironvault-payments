@@ -23,6 +23,8 @@ public class PaymentResponse {
     private String gatewayCode;
     private String gatewayMessage;
     private String declineReason;
+    private String pixQrCode;
+    private String pixCopyPaste;
     private String failureReason;
     private Instant createdAt;
     private Instant updatedAt;

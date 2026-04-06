@@ -32,6 +32,12 @@ public class PaymentEntity {
     @Enumerated(EnumType.STRING)
     private DeclineReason declineReason;
 
+    @Column(name = "pix_qr_code")
+    private String pixQrCode;
+
+    @Column(name = "pix_copy_paste")
+    private String pixCopyPaste;
+
     private String failureReason;
 
     private Instant createdAt;
@@ -49,6 +55,8 @@ public class PaymentEntity {
                          String gatewayCode,
                          String gatewayMessage,
                          DeclineReason declineReason,
+                         String pixQrCode,
+                         String pixCopyPaste,
                          String failureReason,
                          Instant createdAt,
                          Instant updatedAt) {
@@ -62,6 +70,8 @@ public class PaymentEntity {
         this.gatewayCode = gatewayCode;
         this.gatewayMessage = gatewayMessage;
         this.declineReason = declineReason;
+        this.pixQrCode = pixQrCode;
+        this.pixCopyPaste = pixCopyPaste;
         this.failureReason = failureReason;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -157,6 +167,22 @@ public class PaymentEntity {
 
     public void setDeclineReason(DeclineReason declineReason) {
         this.declineReason = declineReason;
+    }
+
+    public String getPixQrCode() {
+        return pixQrCode;
+    }
+
+    public void setPixQrCode(String pixQrCode) {
+        this.pixQrCode = pixQrCode;
+    }
+
+    public String getPixCopyPaste() {
+        return pixCopyPaste;
+    }
+
+    public void setPixCopyPaste(String pixCopyPaste) {
+        this.pixCopyPaste = pixCopyPaste;
     }
 
     public void setCreatedAt(Instant createdAt) {

@@ -2,11 +2,16 @@ package com.ironvault.payments.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironvault.payments.adapter.in.dto.PaymentRequest;
+import com.ironvault.payments.domain.enums.PaymentStatus;
+import com.ironvault.payments.domain.model.PaymentGatewayResult;
+import com.ironvault.payments.domain.port.out.PaymentGatewayPort;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -14,6 +19,8 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -33,6 +40,22 @@ public class PaymentControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private PaymentGatewayPort paymentGatewayPort;
+
+    @BeforeEach
+    void setUp() {
+        when(paymentGatewayPort.process(any())).thenReturn(
+                new PaymentGatewayResult(
+                        "mock-gw-" + UUID.randomUUID(),
+                        PaymentStatus.APPROVED,
+                        "APPROVED",
+                        "Approved",
+                        null, null, null, null
+                )
+        );
+    }
 
     @Test
     @DisplayName("Should create payment successfully")
