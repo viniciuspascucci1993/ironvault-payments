@@ -25,12 +25,19 @@ public class PaymentEntity {
     private PaymentMethod paymentMethod;
 
     private String description;
+    private String payerEmail;
     private String externalId;
 
     private String gatewayCode;
     private String gatewayMessage;
     @Enumerated(EnumType.STRING)
     private DeclineReason declineReason;
+
+    @Column(name = "pix_qr_code", columnDefinition = "TEXT")
+    private String pixQrCode;
+
+    @Column(name = "pix_copy_paste", columnDefinition = "TEXT")
+    private String pixCopyPaste;
 
     private String failureReason;
 
@@ -45,10 +52,13 @@ public class PaymentEntity {
                          PaymentStatus status,
                          PaymentMethod paymentMethod,
                          String description,
+                         String payerEmail,
                          String externalId,
                          String gatewayCode,
                          String gatewayMessage,
                          DeclineReason declineReason,
+                         String pixQrCode,
+                         String pixCopyPaste,
                          String failureReason,
                          Instant createdAt,
                          Instant updatedAt) {
@@ -58,10 +68,13 @@ public class PaymentEntity {
         this.status = status;
         this.paymentMethod = paymentMethod;
         this.description = description;
+        this.payerEmail = payerEmail;
         this.externalId = externalId;
         this.gatewayCode = gatewayCode;
         this.gatewayMessage = gatewayMessage;
         this.declineReason = declineReason;
+        this.pixQrCode = pixQrCode;
+        this.pixCopyPaste = pixCopyPaste;
         this.failureReason = failureReason;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -115,6 +128,14 @@ public class PaymentEntity {
         this.description = description;
     }
 
+    public String getPayerEmail() {
+        return payerEmail;
+    }
+
+    public void setPayerEmail(String payerEmail) {
+        this.payerEmail = payerEmail;
+    }
+
     public String getExternalId() {
         return externalId;
     }
@@ -157,6 +178,22 @@ public class PaymentEntity {
 
     public void setDeclineReason(DeclineReason declineReason) {
         this.declineReason = declineReason;
+    }
+
+    public String getPixQrCode() {
+        return pixQrCode;
+    }
+
+    public void setPixQrCode(String pixQrCode) {
+        this.pixQrCode = pixQrCode;
+    }
+
+    public String getPixCopyPaste() {
+        return pixCopyPaste;
+    }
+
+    public void setPixCopyPaste(String pixCopyPaste) {
+        this.pixCopyPaste = pixCopyPaste;
     }
 
     public void setCreatedAt(Instant createdAt) {

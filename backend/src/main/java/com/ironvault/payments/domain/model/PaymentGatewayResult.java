@@ -11,19 +11,25 @@ public class PaymentGatewayResult {
     private final String gatewayMessage;
     private final DeclineReason declineReason;
     private final String failureReason;
+    private final String pixQrCode;
+    private final String pixCopyPaste;
 
     public PaymentGatewayResult(String externalId,
                                 PaymentStatus status,
                                 String gatewayCode,
                                 String gatewayMessage,
                                 DeclineReason declineReason,
-                                String failureReason) {
+                                String failureReason,
+                                String pixQrCode,
+                                String pixCopyPaste) {
         this.externalId = externalId;
         this.status = status;
         this.gatewayCode = gatewayCode;
         this.gatewayMessage = gatewayMessage;
         this.declineReason = declineReason;
         this.failureReason = failureReason;
+        this.pixQrCode = pixQrCode;
+        this.pixCopyPaste = pixCopyPaste;
     }
 
     public String getExternalId() {
@@ -48,5 +54,13 @@ public class PaymentGatewayResult {
 
     public DeclineReason getDeclineReason() {
         return declineReason;
+    }
+
+    public String getPixQrCode() {
+        return pixQrCode;
+    }
+
+    public String getPixCopyPaste() {
+        return pixCopyPaste;
     }
 }

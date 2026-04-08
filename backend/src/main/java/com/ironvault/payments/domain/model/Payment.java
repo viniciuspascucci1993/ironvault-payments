@@ -1,5 +1,6 @@
 package com.ironvault.payments.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.ironvault.payments.domain.enums.DeclineReason;
 import com.ironvault.payments.domain.enums.PaymentMethod;
 import com.ironvault.payments.domain.enums.PaymentStatus;
@@ -8,6 +9,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Payment {
 
     private UUID id;
@@ -19,11 +21,15 @@ public class Payment {
     private PaymentMethod paymentMethod;
 
     private String description;
+    private String payerEmail;
     private String externalId; // id do gateway de pagamento
 
     private String gatewayCode;
     private String gatewayMessage;
     private DeclineReason declineReason;
+
+    private String pixQrCode;
+    private String pixCopyPaste;
 
     private String failureReason;
 
@@ -31,14 +37,19 @@ public class Payment {
     private Instant createdAt;
     private Instant updatedAt;
 
+    public Payment() {}
+
     public Payment(UUID id, BigDecimal amount, String currency,
                    PaymentStatus status,
                    PaymentMethod paymentMethod,
                    String description,
+                   String payerEmail,
                    String externalId,
                    String gatewayCode,
                    String gatewayMessage,
                    DeclineReason declineReason,
+                   String pixQrCode,
+                   String pixCopyPaste,
                    String failureReason,
                    Instant createdAt,
                    Instant updatedAt) {
@@ -48,10 +59,13 @@ public class Payment {
         this.status = status;
         this.paymentMethod = paymentMethod;
         this.description = description;
+        this.payerEmail = payerEmail;
         this.externalId = externalId;
         this.gatewayCode = gatewayCode;
         this.gatewayMessage = gatewayMessage;
         this.declineReason = declineReason;
+        this.pixQrCode = pixQrCode;
+        this.pixCopyPaste = pixCopyPaste;
         this.failureReason = failureReason;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -105,6 +119,14 @@ public class Payment {
         this.description = description;
     }
 
+    public String getPayerEmail() {
+        return payerEmail;
+    }
+
+    public void setPayerEmail(String payerEmail) {
+        this.payerEmail = payerEmail;
+    }
+
     public String getExternalId() {
         return externalId;
     }
@@ -147,6 +169,22 @@ public class Payment {
 
     public DeclineReason getDeclineReason() {
         return declineReason;
+    }
+
+    public String getPixQrCode() {
+        return pixQrCode;
+    }
+
+    public void setPixQrCode(String pixQrCode) {
+        this.pixQrCode = pixQrCode;
+    }
+
+    public String getPixCopyPaste() {
+        return pixCopyPaste;
+    }
+
+    public void setPixCopyPaste(String pixCopyPaste) {
+        this.pixCopyPaste = pixCopyPaste;
     }
 
     public void setDeclineReason(DeclineReason declineReason) {

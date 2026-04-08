@@ -3,12 +3,15 @@ package com.ironvault.payments.integration;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 
 import com.ironvault.payments.domain.model.Payment;
+import com.ironvault.payments.domain.model.PaymentGatewayResult;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentCommand;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentUseCase;
 import com.ironvault.payments.domain.port.in.payment.UpdatePaymentStatusCommand;
 import com.ironvault.payments.domain.port.in.payment.UpdatePaymentStatusUseCase;
+import com.ironvault.payments.domain.port.out.PaymentGatewayPort;
 import com.ironvault.payments.domain.port.out.PaymentIdempotencyRepositoryPort;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +25,14 @@ import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Callable;
 
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
 
@@ -46,6 +52,23 @@ public class CreatePaymentIntegrationTest {
     @Autowired
     private PaymentRepositoryPort paymentRepositoryPort;
 
+    @MockBean
+    private PaymentGatewayPort paymentGatewayPort;
+
+    @BeforeEach
+    void setUp() {
+        // Mock comportamento padrão — aprovado
+        when(paymentGatewayPort.process(any())).thenReturn(
+                new PaymentGatewayResult(
+                        "mock-gw-" + UUID.randomUUID(),
+                        PaymentStatus.APPROVED,
+                        "APPROVED",
+                        "Approved",
+                        null, null, null, null
+                )
+        );
+    }
+
     @Test
     @DisplayName("Should return same payment when using the same idempotency key")
     void shouldReturnSamePaymentForSameIdempotencyKey() {
@@ -55,7 +78,8 @@ public class CreatePaymentIntegrationTest {
         var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
                 "BRL",
                 "PIX",
-                "test-description");
+                "test-description",
+                "teste@gmail.com");
 
         var first = createPaymentUseCase.create(cmd, key);
         var second = createPaymentUseCase.create(cmd, key);
@@ -74,7 +98,8 @@ public class CreatePaymentIntegrationTest {
         var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
                 "BRL",
                 "PIX",
-                "test-description");
+                "test-description",
+                "teste@gmail.com");
 
         assertThatThrownBy(() ->
                 createPaymentUseCase.create(cmd, null)
@@ -91,7 +116,8 @@ public class CreatePaymentIntegrationTest {
         var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
                 "BRL",
                 "PIX",
-                "test-description");
+                "test-description",
+                "teste@gmail.com");
 
         var executor = Executors.newFixedThreadPool(2);
         try {
@@ -140,11 +166,13 @@ public class CreatePaymentIntegrationTest {
         var cmd1 = new CreatePaymentCommand(BigDecimal.valueOf(200),
                 "BRL",
                 "PIX",
-                "test-description");
+                "test-description",
+                "teste@gmail.com");
         var cmd2 = new CreatePaymentCommand(BigDecimal.valueOf(300),
                 "BRL",
                 "PIX",
-                "test-description");
+                "test-description",
+                "teste@gmail.com");
 
         createPaymentUseCase.create(cmd1, key);
 
@@ -161,11 +189,13 @@ public class CreatePaymentIntegrationTest {
         var cmd1 = new CreatePaymentCommand(BigDecimal.valueOf(200),
                 "BRL",
                 "PIX",
-                "description-1");
+                "description-1",
+                "teste@gmail.com");
         var cmd2 = new CreatePaymentCommand(BigDecimal.valueOf(200),
                 "BRL",
                 "PIX",
-                "description-2");
+                "description-2",
+                "teste@gmail.com");
 
         createPaymentUseCase.create(cmd1, key);
 
@@ -183,7 +213,8 @@ public class CreatePaymentIntegrationTest {
         var cmd = new CreatePaymentCommand(BigDecimal.valueOf(250),
                 "BRL",
                 "PIX",
-                "transition-test");
+                "transition-test",
+                "teste@gmail.com");
 
         var created = createPaymentUseCase.create(cmd, key);
 
@@ -207,7 +238,9 @@ public class CreatePaymentIntegrationTest {
                 .hasMessageContaining("Invalid status transition");
 
         var processingPayment = createPaymentUseCase.create(
-                new CreatePaymentCommand(BigDecimal.valueOf(251), "BRL", "PIX", "transition-failure-test"),
+                new CreatePaymentCommand(BigDecimal.valueOf(251), "BRL", "PIX",
+                        "transition-failure-test",
+                        "teste@gmail.com"),
                 "ironvault-transition-test-2"
         );
         var failed = updatePaymentStatusUseCase.updateStatus(
@@ -220,13 +253,13 @@ public class CreatePaymentIntegrationTest {
     @Test
     @DisplayName("Should process payment asynchronously and mark failed on technical error")
     void shouldProcessPaymentAsyncFailurePath() {
-        String key = "ironvault-async-failed-1";
+        when(paymentGatewayPort.process(any()))
+                .thenThrow(new RuntimeException("Mock gateway timeout"));
 
-        var cmd = new CreatePaymentCommand(new BigDecimal("14.00"),
-                "BRL",
-                "PIX",
-                "async-failed");
-
+        String key = "ironvault-async-failed-" + UUID.randomUUID();
+        var cmd = new CreatePaymentCommand(new BigDecimal("14.00"), "BRL",
+                "PIX", "async-failed",
+                "teste@gmail.com");
         var created = createPaymentUseCase.create(cmd, key);
 
         assertThat(created.getStatus()).isEqualTo(PaymentStatus.PROCESSING);

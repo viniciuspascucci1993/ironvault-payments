@@ -58,7 +58,7 @@ public class PaymentController {
 
         Payment payment = createPaymentUseCase.create(
                 new CreatePaymentCommand(request.getAmount(), request.getCurrency(), request.getPaymentMethod(),
-                        request.getDescription()),
+                        request.getDescription(), request.getPayerEmail()),
                 idempotencyKey
         );
 

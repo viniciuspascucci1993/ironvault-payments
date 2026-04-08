@@ -9,14 +9,13 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.datatype.jsr310.ser.InstantSerializer;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -33,7 +32,6 @@ public class JacksonConfig {
         return builder -> {
             SimpleModule module = new SimpleModule();
 
-            // Serializer — formato limpo na saída
             module.addSerializer(Instant.class, new StdSerializer<>(Instant.class) {
                 @Override
                 public void serialize(Instant value, JsonGenerator gen, SerializerProvider provider)
@@ -42,7 +40,6 @@ public class JacksonConfig {
                 }
             });
 
-            // Deserializer — aceita múltiplos formatos na entrada
             module.addDeserializer(Instant.class, new StdDeserializer<>(Instant.class) {
                 @Override
                 public Instant deserialize(JsonParser p, DeserializationContext ctx)
@@ -51,7 +48,12 @@ public class JacksonConfig {
                     try {
                         return Instant.parse(text);
                     } catch (Exception e) {
-                        return OffsetDateTime.parse(text).toInstant();
+                        try {
+                            return OffsetDateTime.parse(text).toInstant();
+                        } catch (Exception e2) {
+                            return LocalDateTime.parse(text)
+                                    .toInstant(ZoneOffset.UTC);
+                        }
                     }
                 }
             });
