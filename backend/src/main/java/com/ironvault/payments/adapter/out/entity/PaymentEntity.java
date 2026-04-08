@@ -32,10 +32,10 @@ public class PaymentEntity {
     @Enumerated(EnumType.STRING)
     private DeclineReason declineReason;
 
-    @Column(name = "pix_qr_code")
+    @Column(name = "pix_qr_code", columnDefinition = "TEXT")
     private String pixQrCode;
 
-    @Column(name = "pix_copy_paste")
+    @Column(name = "pix_copy_paste", columnDefinition = "TEXT")
     private String pixCopyPaste;
 
     private String failureReason;

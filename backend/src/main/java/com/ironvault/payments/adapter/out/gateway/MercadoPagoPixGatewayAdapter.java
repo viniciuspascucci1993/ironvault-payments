@@ -8,6 +8,7 @@ import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.payment.PaymentCreateRequest;
 import com.mercadopago.client.payment.PaymentPayerRequest;
+import com.mercadopago.exceptions.MPApiException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
@@ -20,6 +21,9 @@ public class MercadoPagoPixGatewayAdapter implements PaymentGatewayPort {
 
     @Value("${app.mercadopago.access-token}")
     private String accessToken;
+
+    @Value("${app.mercadopago.payer-email}")
+    private String payerEmail;
 
     @Override
     public PaymentGatewayResult process(Payment payment) {
@@ -35,7 +39,7 @@ public class MercadoPagoPixGatewayAdapter implements PaymentGatewayPort {
                             : "IronVault Payment")
                     .paymentMethodId("pix")
                     .payer(PaymentPayerRequest.builder()
-                            .email("test_user@testuser.com")
+                            .email(payerEmail)
                             .build())
                     .build();
 
@@ -60,6 +64,12 @@ public class MercadoPagoPixGatewayAdapter implements PaymentGatewayPort {
                     qrCode,
                     qrCodeBase64
             );
+
+        } catch (MPApiException apiEx) {
+            log.error("MercadoPago API error. Status: {} Response: {}",
+                    apiEx.getStatusCode(),
+                    apiEx.getApiResponse().getContent());
+            throw new RuntimeException("MercadoPago PIX processing failed: " + apiEx.getApiResponse().getContent(), apiEx);
 
         } catch (Exception ex) {
             log.error("MercadoPago PIX error: {}", ex.getMessage());

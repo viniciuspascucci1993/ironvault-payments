@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.ironvault.payments.domain.enums.DeclineReason;
 import com.ironvault.payments.domain.enums.PaymentMethod;
 import com.ironvault.payments.domain.enums.PaymentStatus;
-import jakarta.persistence.Column;
 
 import java.math.BigDecimal;
 import java.time.Instant;
