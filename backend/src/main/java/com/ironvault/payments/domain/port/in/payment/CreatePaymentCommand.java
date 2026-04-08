@@ -16,6 +16,7 @@ public class CreatePaymentCommand {
         this.currency = currency;
         this.paymentMethod = paymentMethod;
         this.description = description;
+        this.payerEmail = payerEmail;
     }
 
     public BigDecimal getAmount() {

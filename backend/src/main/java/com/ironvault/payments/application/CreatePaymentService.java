@@ -130,7 +130,7 @@ public class CreatePaymentService implements CreatePaymentUseCase {
                 PaymentStatus.CREATED,
                 PaymentMethod.valueOf(command.getPaymentMethod()),
                 command.getDescription(),
-                command.getPayerEmail(),  // ← agora na posição correta (após description)
+                command.getPayerEmail(),
                 null,  // externalId
                 null,  // gatewayCode
                 null,  // gatewayMessage
