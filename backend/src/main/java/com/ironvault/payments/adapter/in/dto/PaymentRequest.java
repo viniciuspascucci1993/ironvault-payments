@@ -1,5 +1,6 @@
 package com.ironvault.payments.adapter.in.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -22,4 +23,8 @@ public class PaymentRequest {
     @NotBlank
     private String paymentMethod;
     private String description;
+
+    @NotBlank
+    @Email
+    private String payerEmail;
 }

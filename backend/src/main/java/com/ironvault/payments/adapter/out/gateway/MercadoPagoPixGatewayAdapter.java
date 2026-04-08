@@ -9,6 +9,7 @@ import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.payment.PaymentCreateRequest;
 import com.mercadopago.client.payment.PaymentPayerRequest;
 import com.mercadopago.exceptions.MPApiException;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
@@ -22,16 +23,15 @@ public class MercadoPagoPixGatewayAdapter implements PaymentGatewayPort {
     @Value("${app.mercadopago.access-token}")
     private String accessToken;
 
-    @Value("${app.mercadopago.payer-email}")
-    private String payerEmail;
+    @PostConstruct
+    public void init() {
+        MercadoPagoConfig.setAccessToken(accessToken);
+    }
 
     @Override
     public PaymentGatewayResult process(Payment payment) {
 
         try {
-
-            MercadoPagoConfig.setAccessToken(accessToken);
-
             PaymentCreateRequest request = PaymentCreateRequest.builder()
                     .transactionAmount(payment.getAmount())
                     .description(payment.getDescription() != null
@@ -39,7 +39,7 @@ public class MercadoPagoPixGatewayAdapter implements PaymentGatewayPort {
                             : "IronVault Payment")
                     .paymentMethodId("pix")
                     .payer(PaymentPayerRequest.builder()
-                            .email(payerEmail)
+                            .email(payment.getPayerEmail())
                             .build())
                     .build();
 

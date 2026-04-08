@@ -25,6 +25,7 @@ public class PaymentEntity {
     private PaymentMethod paymentMethod;
 
     private String description;
+    private String payerEmail;
     private String externalId;
 
     private String gatewayCode;
@@ -51,6 +52,7 @@ public class PaymentEntity {
                          PaymentStatus status,
                          PaymentMethod paymentMethod,
                          String description,
+                         String payerEmail,
                          String externalId,
                          String gatewayCode,
                          String gatewayMessage,
@@ -66,6 +68,7 @@ public class PaymentEntity {
         this.status = status;
         this.paymentMethod = paymentMethod;
         this.description = description;
+        this.payerEmail = payerEmail;
         this.externalId = externalId;
         this.gatewayCode = gatewayCode;
         this.gatewayMessage = gatewayMessage;
@@ -123,6 +126,14 @@ public class PaymentEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getPayerEmail() {
+        return payerEmail;
+    }
+
+    public void setPayerEmail(String payerEmail) {
+        this.payerEmail = payerEmail;
     }
 
     public String getExternalId() {

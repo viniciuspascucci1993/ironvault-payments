@@ -9,8 +9,9 @@ public class CreatePaymentCommand {
     private String currency;
     private String paymentMethod;
     private String description;
+    private String payerEmail;
 
-    public CreatePaymentCommand(BigDecimal amount, String currency, String paymentMethod, String description) {
+    public CreatePaymentCommand(BigDecimal amount, String currency, String paymentMethod, String description, String payerEmail) {
         this.amount = amount;
         this.currency = currency;
         this.paymentMethod = paymentMethod;
@@ -47,5 +48,13 @@ public class CreatePaymentCommand {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getPayerEmail() {
+        return payerEmail;
+    }
+
+    public void setPayerEmail(String payerEmail) {
+        this.payerEmail = payerEmail;
     }
 }

@@ -78,7 +78,8 @@ public class CreatePaymentIntegrationTest {
         var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
                 "BRL",
                 "PIX",
-                "test-description");
+                "test-description",
+                "teste@gmail.com");
 
         var first = createPaymentUseCase.create(cmd, key);
         var second = createPaymentUseCase.create(cmd, key);
@@ -97,7 +98,8 @@ public class CreatePaymentIntegrationTest {
         var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
                 "BRL",
                 "PIX",
-                "test-description");
+                "test-description",
+                "teste@gmail.com");
 
         assertThatThrownBy(() ->
                 createPaymentUseCase.create(cmd, null)
@@ -114,7 +116,8 @@ public class CreatePaymentIntegrationTest {
         var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
                 "BRL",
                 "PIX",
-                "test-description");
+                "test-description",
+                "teste@gmail.com");
 
         var executor = Executors.newFixedThreadPool(2);
         try {
@@ -163,11 +166,13 @@ public class CreatePaymentIntegrationTest {
         var cmd1 = new CreatePaymentCommand(BigDecimal.valueOf(200),
                 "BRL",
                 "PIX",
-                "test-description");
+                "test-description",
+                "teste@gmail.com");
         var cmd2 = new CreatePaymentCommand(BigDecimal.valueOf(300),
                 "BRL",
                 "PIX",
-                "test-description");
+                "test-description",
+                "teste@gmail.com");
 
         createPaymentUseCase.create(cmd1, key);
 
@@ -184,11 +189,13 @@ public class CreatePaymentIntegrationTest {
         var cmd1 = new CreatePaymentCommand(BigDecimal.valueOf(200),
                 "BRL",
                 "PIX",
-                "description-1");
+                "description-1",
+                "teste@gmail.com");
         var cmd2 = new CreatePaymentCommand(BigDecimal.valueOf(200),
                 "BRL",
                 "PIX",
-                "description-2");
+                "description-2",
+                "teste@gmail.com");
 
         createPaymentUseCase.create(cmd1, key);
 
@@ -206,7 +213,8 @@ public class CreatePaymentIntegrationTest {
         var cmd = new CreatePaymentCommand(BigDecimal.valueOf(250),
                 "BRL",
                 "PIX",
-                "transition-test");
+                "transition-test",
+                "teste@gmail.com");
 
         var created = createPaymentUseCase.create(cmd, key);
 
@@ -230,7 +238,9 @@ public class CreatePaymentIntegrationTest {
                 .hasMessageContaining("Invalid status transition");
 
         var processingPayment = createPaymentUseCase.create(
-                new CreatePaymentCommand(BigDecimal.valueOf(251), "BRL", "PIX", "transition-failure-test"),
+                new CreatePaymentCommand(BigDecimal.valueOf(251), "BRL", "PIX",
+                        "transition-failure-test",
+                        "teste@gmail.com"),
                 "ironvault-transition-test-2"
         );
         var failed = updatePaymentStatusUseCase.updateStatus(
@@ -247,7 +257,9 @@ public class CreatePaymentIntegrationTest {
                 .thenThrow(new RuntimeException("Mock gateway timeout"));
 
         String key = "ironvault-async-failed-" + UUID.randomUUID();
-        var cmd = new CreatePaymentCommand(new BigDecimal("14.00"), "BRL", "PIX", "async-failed");
+        var cmd = new CreatePaymentCommand(new BigDecimal("14.00"), "BRL",
+                "PIX", "async-failed",
+                "teste@gmail.com");
         var created = createPaymentUseCase.create(cmd, key);
 
         assertThat(created.getStatus()).isEqualTo(PaymentStatus.PROCESSING);

@@ -65,7 +65,8 @@ public class PaymentControllerTest {
                 BigDecimal.valueOf(150),
                 "BRL",
                 "PIX",
-                "test-description"
+                "test-description",
+                "teste@gmail.com"
         );
 
         mockMvc.perform(post("/api/payments")
@@ -86,7 +87,8 @@ public class PaymentControllerTest {
                 BigDecimal.valueOf(100),
                 "BRL",
                 "PIX",
-                "test-description"
+                "test-description",
+                "teste@gmail.com"
         );
 
         var createResult = mockMvc.perform(post("/api/payments")
@@ -131,7 +133,8 @@ public class PaymentControllerTest {
                 BigDecimal.valueOf(100),
                 "BRL",
                 "PIX",
-                "test-description"
+                "test-description",
+                "teste@gmail.com"
         );
 
         var createResult = mockMvc.perform(post("/api/payments")
@@ -180,7 +183,8 @@ public class PaymentControllerTest {
                 BigDecimal.valueOf(150),
                 "BRL",
                 "PIX",
-                "test-description"
+                "test-description",
+                "teste@gmail.com"
         );
 
         String key = "ironvault-" + UUID.randomUUID();
@@ -212,11 +216,13 @@ public class PaymentControllerTest {
         PaymentRequest req1 = new PaymentRequest(BigDecimal.valueOf(100),
                 "BRL",
                 "PIX",
-                "test-description");
+                "test-description",
+                "teste@gmail.com");
         PaymentRequest req2 = new PaymentRequest(BigDecimal.valueOf(200),
                 "BRL",
                 "PIX",
-                "test-description");
+                "test-description",
+                "teste@gmail.com");
 
         String key = "ironvault-123e4567-e89b-12d3-a456-426614174000";
 
@@ -241,7 +247,8 @@ public class PaymentControllerTest {
                 BigDecimal.valueOf(100),
                 "BRL",
                 "INVALID_METHOD",
-                "test-description"
+                "test-description",
+                "teste@gmail.com"
         );
 
         // SUA API NÃO VALIDA → então espera 201
@@ -260,7 +267,8 @@ public class PaymentControllerTest {
                 BigDecimal.valueOf(100),
                 "BRL",
                 "PIX",
-                "test-description"
+                "test-description",
+                "teste@gmail.com"
         );
 
         mockMvc.perform(post("/api/payments")

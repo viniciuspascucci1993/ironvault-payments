@@ -23,5 +23,4 @@ app:
     mock-secret: ironvault-webhook-secret
     signature-tolerance-seconds: 300
   mercadopago:
-    access-token: ${MERCADO_PAGO_ACCESS_TOKEN}
-    payer-email: ${EMAIL_PAYER}
+    access-token: ${MERCADO_PAGO_ACCESS_TOKEN:TEST-fake-default-token}

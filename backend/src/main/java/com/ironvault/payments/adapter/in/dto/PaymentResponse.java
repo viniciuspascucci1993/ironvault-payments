@@ -25,6 +25,7 @@ public class PaymentResponse {
     private String declineReason;
     private String pixQrCode;
     private String pixCopyPaste;
+    private String payerEmail;
     private String failureReason;
     private Instant createdAt;
     private Instant updatedAt;

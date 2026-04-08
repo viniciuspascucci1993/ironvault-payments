@@ -130,13 +130,14 @@ public class CreatePaymentService implements CreatePaymentUseCase {
                 PaymentStatus.CREATED,
                 PaymentMethod.valueOf(command.getPaymentMethod()),
                 command.getDescription(),
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
+                command.getPayerEmail(),  // ← agora na posição correta (após description)
+                null,  // externalId
+                null,  // gatewayCode
+                null,  // gatewayMessage
+                null,  // declineReason
+                null,  // pixQrCode
+                null,  // pixCopyPaste
+                null,  // failureReason
                 Instant.now(),
                 Instant.now()
         );
@@ -195,6 +196,7 @@ public class CreatePaymentService implements CreatePaymentUseCase {
             payload.put("currency", normalizeTextUpper(command.getCurrency()));
             payload.put("paymentMethod", normalizeTextUpper(command.getPaymentMethod()));
             payload.put("description", normalizeText(command.getDescription()));
+            payload.put("payerEmail", normalizeText(command.getPayerEmail()));
 
             String canonicalPayload = objectMapper.writeValueAsString(payload);
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
