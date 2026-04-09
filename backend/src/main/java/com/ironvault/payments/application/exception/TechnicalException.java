@@ -1,4 +1,4 @@
-package com.ironvault.payments.adapter.in.exception;
+package com.ironvault.payments.application.exception;
 
 public class TechnicalException extends RuntimeException {
 

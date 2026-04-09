@@ -1,11 +1,10 @@
 package com.ironvault.payments.application;
 
-import com.ironvault.payments.adapter.out.entity.webhook.PaymentWebhookEventEntity;
-import com.ironvault.payments.adapter.out.persistence.PaymentWebhookEventJpaRepository;
 import com.ironvault.payments.application.mapper.GatewayDeclineReasonMapper;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
+import com.ironvault.payments.domain.port.out.WebhookEventRepositoryPort;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -14,11 +13,11 @@ import java.time.Instant;
 public class HandleMockWebhookService {
 
     private final PaymentRepositoryPort paymentRepositoryPort;
-    private final PaymentWebhookEventJpaRepository webhookEventRepository;
+    private final WebhookEventRepositoryPort webhookEventRepository;
     private final GatewayDeclineReasonMapper declineReasonMapper;
 
     public HandleMockWebhookService(PaymentRepositoryPort paymentRepositoryPort,
-                                    PaymentWebhookEventJpaRepository webhookEventRepository,
+                                    WebhookEventRepositoryPort webhookEventRepository,
                                     GatewayDeclineReasonMapper declineReasonMapper) {
         this.paymentRepositoryPort = paymentRepositoryPort;
         this.webhookEventRepository = webhookEventRepository;
@@ -54,9 +53,7 @@ public class HandleMockWebhookService {
         payment.setUpdatedAt(Instant.now());
         paymentRepositoryPort.save(payment);
 
-        webhookEventRepository.save(
-                new PaymentWebhookEventEntity(eventId, externalId, Instant.now())
-        );
+        webhookEventRepository.save(eventId, externalId, Instant.now());
 
         return true;
     }

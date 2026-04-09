@@ -28,6 +28,8 @@ import java.util.UUID;
 @RequestMapping("/api/payments")
 public class PaymentController {
 
+    private static final int MAX_PAGE_SIZE = 100;
+
     private final CreatePaymentUseCase createPaymentUseCase;
     private final GetAllPaymentsUseCase getAllPaymentsUseCase;
     private final GetPaymentByIdUseCase getPaymentByIdUseCase;
@@ -104,6 +106,10 @@ public class PaymentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
+        if (size > MAX_PAGE_SIZE) {
+            throw new IllegalArgumentException("Page size must not exceed " + MAX_PAGE_SIZE);
+        }
+
         PaymentStatus paymentStatus = null;
 
         if (status != null) {
@@ -113,13 +119,6 @@ public class PaymentController {
                 throw new IllegalArgumentException("Invalid status: " + status);
             }
         }
-
-        PaymentFilter filter = new PaymentFilter(
-                paymentStatus,
-                currency,
-                minAmount,
-                maxAmount
-        );
 
         if (currency != null && currency.length() != 3) {
             throw new IllegalArgumentException(
@@ -132,6 +131,13 @@ public class PaymentController {
                     "minAmount cannot be greater than maxAmount"
             );
         }
+
+        PaymentFilter filter = new PaymentFilter(
+                paymentStatus,
+                currency,
+                minAmount,
+                maxAmount
+        );
 
         PageQuery pageQuery = new PageQuery(page, size);
 

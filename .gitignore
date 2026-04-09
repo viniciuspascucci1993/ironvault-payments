@@ -10,3 +10,5 @@ frontend/dist/
 .vscode/
 *.iml
 .DS_Store
+
+.env

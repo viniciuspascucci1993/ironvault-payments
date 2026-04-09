@@ -1,9 +1,8 @@
 package com.ironvault.payments.application;
 
-import com.ironvault.payments.adapter.in.exception.TechnicalException;
-import com.ironvault.payments.adapter.out.entity.webhook.WebhookDeliveryAttemptEntity;
-import com.ironvault.payments.adapter.out.persistence.WebhookDeliveryAttemptRepository;
+import com.ironvault.payments.application.exception.TechnicalException;
 import com.ironvault.payments.domain.enums.WebhookDeliveryStatus;
+import com.ironvault.payments.domain.port.out.WebhookDeliveryAttemptRepositoryPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
@@ -19,10 +18,10 @@ import java.util.Objects;
 public class WebhookRetryService {
 
     private final HandleMockWebhookService handleMockWebhookService;
-    private final WebhookDeliveryAttemptRepository attemptRepository;
+    private final WebhookDeliveryAttemptRepositoryPort attemptRepository;
 
     public WebhookRetryService(HandleMockWebhookService handleMockWebhookService,
-                               WebhookDeliveryAttemptRepository attemptRepository) {
+                               WebhookDeliveryAttemptRepositoryPort attemptRepository) {
         this.handleMockWebhookService = handleMockWebhookService;
         this.attemptRepository = attemptRepository;
     }
@@ -80,8 +79,6 @@ public class WebhookRetryService {
 
     private void saveAttempt(String eventId, String externalId, int attemptNumber,
                              WebhookDeliveryStatus status, String errorMessage) {
-        attemptRepository.save(new WebhookDeliveryAttemptEntity(
-                eventId, externalId, attemptNumber, status, errorMessage, Instant.now()
-        ));
+        attemptRepository.save(eventId, externalId, attemptNumber, status, errorMessage, Instant.now());
     }
 }
