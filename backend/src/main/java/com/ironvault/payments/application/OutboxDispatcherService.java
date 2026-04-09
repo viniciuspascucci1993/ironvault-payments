@@ -1,7 +1,7 @@
 package com.ironvault.payments.application;
 
-import com.ironvault.payments.adapter.out.persistence.OutboxEventRepository;
 import com.ironvault.payments.domain.enums.OutboxEventStatus;
+import com.ironvault.payments.domain.port.out.OutboxEventRepositoryPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -12,10 +12,10 @@ import java.time.Instant;
 @Slf4j
 public class OutboxDispatcherService {
 
-    private final OutboxEventRepository outboxEventRepository;
+    private final OutboxEventRepositoryPort outboxEventRepository;  // ← trocou
     private final ProcessPaymentAsyncService processPaymentAsyncService;
 
-    public OutboxDispatcherService(OutboxEventRepository outboxEventRepository,
+    public OutboxDispatcherService(OutboxEventRepositoryPort outboxEventRepository,
                                    ProcessPaymentAsyncService processPaymentAsyncService) {
         this.outboxEventRepository = outboxEventRepository;
         this.processPaymentAsyncService = processPaymentAsyncService;
@@ -24,8 +24,7 @@ public class OutboxDispatcherService {
     @Scheduled(fixedDelay = 500)
     public void dispatch() {
 
-        var pendingEvents = outboxEventRepository.findTop10ByStatusOrderByCreatedAtAsc(
-                OutboxEventStatus.PENDING);
+        var pendingEvents = outboxEventRepository.findPendingEvents();
 
         if (pendingEvents.isEmpty()) {
             return;
@@ -35,12 +34,11 @@ public class OutboxDispatcherService {
 
         for (var event : pendingEvents) {
             try {
+                processPaymentAsyncService.processPayment(event.getPaymentId()); // ← despacha primeiro
 
-                event.setStatus(OutboxEventStatus.PROCESSED);
+                event.setStatus(OutboxEventStatus.PROCESSED); // ← só marca depois que foi aceito
                 event.setProcessedAt(Instant.now());
                 outboxEventRepository.save(event);
-
-                processPaymentAsyncService.processPayment(event.getPaymentId());
 
                 log.info("Outbox event dispatched. paymentId={}", event.getPaymentId());
 

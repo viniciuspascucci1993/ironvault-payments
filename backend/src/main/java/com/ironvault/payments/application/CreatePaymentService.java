@@ -2,7 +2,6 @@ package com.ironvault.payments.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironvault.payments.adapter.out.entity.outbox.OutboxEventEntity;
-import com.ironvault.payments.adapter.out.persistence.OutboxEventRepository;
 import com.ironvault.payments.domain.enums.OutboxEventStatus;
 import com.ironvault.payments.domain.enums.PaymentMethod;
 import com.ironvault.payments.domain.enums.PaymentStatus;
@@ -10,6 +9,7 @@ import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.model.PaymentIdempotency;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentCommand;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentUseCase;
+import com.ironvault.payments.domain.port.out.OutboxEventRepositoryPort;
 import com.ironvault.payments.domain.port.out.PaymentIdempotencyRepositoryPort;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
 
@@ -21,13 +21,6 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
-
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -42,12 +35,12 @@ public class CreatePaymentService implements CreatePaymentUseCase {
 
     private final PaymentRepositoryPort paymentRepositoryPort;
     private final PaymentIdempotencyRepositoryPort idempotencyRepository;
-    private final OutboxEventRepository outboxEventRepository;
+    private final OutboxEventRepositoryPort outboxEventRepository;
     private final ObjectMapper objectMapper;
 
     public CreatePaymentService(PaymentRepositoryPort paymentRepositoryPort,
                                 PaymentIdempotencyRepositoryPort idempotencyRepository,
-                                OutboxEventRepository outboxEventRepository,
+                                OutboxEventRepositoryPort outboxEventRepository,
                                 ObjectMapper objectMapper) {
         this.paymentRepositoryPort = paymentRepositoryPort;
         this.idempotencyRepository = idempotencyRepository;

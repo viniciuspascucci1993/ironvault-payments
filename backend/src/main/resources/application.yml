@@ -3,24 +3,24 @@ spring:
     name: payments-backend
 
   datasource:
-    url: jdbc:postgresql://localhost:5490/ironvault
-    username: ironvault
-    password: ironvault
+    url: ${DB_URL}
+    username: ${DB_USERNAME:ironvault}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: validate
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
 
 server:
   port: 8080
 
 app:
   webhook:
-    mock-secret: ironvault-webhook-secret
+    mock-secret: ${WEBHOOK_SECRET}
     signature-tolerance-seconds: 300
   mercadopago:
-    access-token: ${MERCADO_PAGO_ACCESS_TOKEN:TEST-fake-default-token}
+    access-token: ${MERCADO_PAGO_ACCESS_TOKEN}
