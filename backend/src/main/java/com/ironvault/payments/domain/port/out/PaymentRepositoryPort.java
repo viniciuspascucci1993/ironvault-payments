@@ -2,9 +2,8 @@ package com.ironvault.payments.domain.port.out;
 
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
+import com.ironvault.payments.domain.query.PageQuery;
+import com.ironvault.payments.domain.query.PageResult;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -17,12 +16,12 @@ public interface PaymentRepositoryPort {
     Optional<Payment> findById(UUID id);
 
 
-    Page<Payment> findAllWithFilters(
+    PageResult<Payment> findAllWithFilters(
             PaymentStatus status,
             String currency,
             BigDecimal minAmount,
             BigDecimal maxAmount,
-            Pageable pageable);
+            PageQuery pageable);
 
     Optional<Payment> findByExternalId(String externalId);
 }

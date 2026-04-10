@@ -6,8 +6,10 @@ import com.ironvault.payments.adapter.out.persistence.specification.PaymentSpeci
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
+import com.ironvault.payments.domain.query.PageQuery;
+import com.ironvault.payments.domain.query.PageResult;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -43,15 +45,23 @@ public class PaymentRepositoryAdapter implements PaymentRepositoryPort {
     }
 
     @Override
-    public Page<Payment> findAllWithFilters(PaymentStatus status,
-                                            String currency,
-                                            BigDecimal minAmount,
-                                            BigDecimal maxAmount,
-                                            Pageable pageable) {
-        var specificationFilter = PaymentSpecification.withFilters(status, currency, minAmount, maxAmount);
-
-        return paymentJpaRepository.findAll(specificationFilter, pageable)
+    public PageResult<Payment> findAllWithFilters(PaymentStatus status,
+                                                  String currency,
+                                                  BigDecimal minAmount,
+                                                  BigDecimal maxAmount,
+                                                  PageQuery pageQuery) {
+        var spec = PaymentSpecification.withFilters(status, currency, minAmount, maxAmount);
+        var pageable = PageRequest.of(pageQuery.getPage(), pageQuery.getSize());
+        Page<Payment> page = paymentJpaRepository.findAll(spec, pageable)
                 .map(mapper::toDomain);
+
+        return new PageResult<>(
+                page.getContent(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
     }
 
     @Override

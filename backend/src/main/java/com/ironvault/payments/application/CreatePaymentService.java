@@ -1,10 +1,11 @@
 package com.ironvault.payments.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ironvault.payments.adapter.out.entity.outbox.OutboxEventEntity;
 import com.ironvault.payments.domain.enums.OutboxEventStatus;
 import com.ironvault.payments.domain.enums.PaymentMethod;
 import com.ironvault.payments.domain.enums.PaymentStatus;
+import com.ironvault.payments.domain.exception.IdempotencyKeyConflictException;
+import com.ironvault.payments.domain.model.OutboxEvent;
 import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.model.PaymentIdempotency;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentCommand;
@@ -24,7 +25,6 @@ import java.util.UUID;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -93,9 +93,7 @@ public class CreatePaymentService implements CreatePaymentUseCase {
 
                 idempotencyRepository.save(reservation);
 
-            } catch (DataIntegrityViolationException ex) {
-
-                // outro thread já reservou
+            } catch (IdempotencyKeyConflictException ex) {
                 var existing = idempotencyRepository.findByKey(idempotencyKey)
                         .orElseThrow(() -> new IllegalStateException(
                                 "Unable to reserve idempotency key due to persistence constraint"
@@ -152,7 +150,7 @@ public class CreatePaymentService implements CreatePaymentUseCase {
             idempotencyRepository.save(existing);
         }
 
-        outboxEventRepository.save(new OutboxEventEntity(
+        outboxEventRepository.save(new OutboxEvent(
                 processingPayment.getId(),
                 OutboxEventStatus.PENDING,
                 Instant.now()

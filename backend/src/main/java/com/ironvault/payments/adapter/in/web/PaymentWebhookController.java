@@ -2,9 +2,8 @@ package com.ironvault.payments.adapter.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironvault.payments.adapter.in.dto.MockGatewayWebhookRequest;
-import com.ironvault.payments.application.HandleMockWebhookService;
-import com.ironvault.payments.application.WebhookProcessingService;
 import com.ironvault.payments.application.signature.WebhookSignatureService;
+import com.ironvault.payments.domain.port.in.webhook.ProcessWebhookUseCase;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +19,13 @@ import java.util.stream.Collectors;
 public class PaymentWebhookController {
 
     private final WebhookSignatureService webhookSignatureService;
-    private final WebhookProcessingService webhookProcessingService;
+    private final ProcessWebhookUseCase webhookProcessingService;
     private final ObjectMapper objectMapper;
     private final Validator validator;
 
 
     public PaymentWebhookController(WebhookSignatureService webhookSignatureService,
-                                    WebhookProcessingService webhookProcessingService,
+                                    ProcessWebhookUseCase webhookProcessingService,
                                     ObjectMapper objectMapper,
                                     Validator validator) {
         this.webhookSignatureService = webhookSignatureService;
