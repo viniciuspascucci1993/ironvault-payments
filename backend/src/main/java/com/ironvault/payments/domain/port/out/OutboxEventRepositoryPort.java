@@ -1,11 +1,10 @@
 package com.ironvault.payments.domain.port.out;
 
-import com.ironvault.payments.adapter.out.entity.outbox.OutboxEventEntity;
-
+import com.ironvault.payments.domain.model.OutboxEvent;
 import java.util.List;
 
 public interface OutboxEventRepositoryPort {
 
-    OutboxEventEntity save(OutboxEventEntity event);
-    List<OutboxEventEntity> findPendingEvents();
+    OutboxEvent save(OutboxEvent event);
+    List<OutboxEvent> findPendingEvents();
 }

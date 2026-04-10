@@ -3,6 +3,7 @@ package com.ironvault.payments.application;
 import com.ironvault.payments.application.mapper.GatewayDeclineReasonMapper;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
+import com.ironvault.payments.domain.port.in.webhook.HandleWebhookUseCase;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
 import com.ironvault.payments.domain.port.out.WebhookEventRepositoryPort;
 import org.springframework.stereotype.Service;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 
 @Service
-public class HandleMockWebhookService {
+public class HandleMockWebhookService implements HandleWebhookUseCase {
 
     private final PaymentRepositoryPort paymentRepositoryPort;
     private final WebhookEventRepositoryPort webhookEventRepository;
@@ -24,6 +25,7 @@ public class HandleMockWebhookService {
         this.declineReasonMapper = declineReasonMapper;
     }
 
+    @Override
     public boolean handle(String eventId,
                           String externalId,
                           String status,

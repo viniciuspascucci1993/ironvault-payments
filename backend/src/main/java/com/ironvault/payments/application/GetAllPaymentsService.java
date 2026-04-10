@@ -27,22 +27,12 @@ public class GetAllPaymentsService implements GetAllPaymentsUseCase {
     @Override
     public PageResult<Payment> getAllWithFilters(PaymentFilter filter, PageQuery pageQuery) {
 
-        var pageRequest = PageRequest.of(pageQuery.getPage(), pageQuery.getSize());
-
-        var page = paymentRepositoryPort.findAllWithFilters(
+        return paymentRepositoryPort.findAllWithFilters(
                 filter.getStatus(),
                 filter.getCurrency(),
                 filter.getMinAmount(),
                 filter.getMaxAmount(),
-                pageRequest
-        );
-
-        return new PageResult<>(
-                page.getContent(),
-                page.getNumber(),
-                page.getSize(),
-                page.getTotalElements(),
-                page.getTotalPages()
+                pageQuery
         );
     }
 }
