@@ -24,3 +24,5 @@ app:
     signature-tolerance-seconds: 300
   mercadopago:
     access-token: ${MERCADO_PAGO_ACCESS_TOKEN}
+  jwt:
+    secret: ${JWT_SECRET}
