@@ -28,6 +28,7 @@ public class PaymentEntity {
     private String payerEmail;
     private String externalId;
 
+    @Column(columnDefinition = "TEXT")
     private String gatewayCode;
 
     @Column(columnDefinition = "TEXT")
