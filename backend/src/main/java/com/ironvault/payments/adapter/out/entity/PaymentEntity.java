@@ -29,6 +29,8 @@ public class PaymentEntity {
     private String externalId;
 
     private String gatewayCode;
+
+    @Column(columnDefinition = "TEXT")
     private String gatewayMessage;
     @Enumerated(EnumType.STRING)
     private DeclineReason declineReason;
@@ -39,6 +41,7 @@ public class PaymentEntity {
     @Column(name = "pix_copy_paste", columnDefinition = "TEXT")
     private String pixCopyPaste;
 
+    @Column(columnDefinition = "TEXT")
     private String failureReason;
 
     private Instant createdAt;
