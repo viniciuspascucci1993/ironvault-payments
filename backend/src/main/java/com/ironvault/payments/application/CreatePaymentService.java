@@ -8,7 +8,7 @@ import com.ironvault.payments.domain.exception.IdempotencyKeyConflictException;
 import com.ironvault.payments.domain.model.OutboxEvent;
 import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.model.PaymentIdempotency;
-import com.ironvault.payments.domain.port.in.payment.CreatePaymentCommand;
+import com.ironvault.payments.domain.port.in.command.CreatePaymentCommand;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentUseCase;
 import com.ironvault.payments.domain.port.out.OutboxEventRepositoryPort;
 import com.ironvault.payments.domain.port.out.PaymentIdempotencyRepositoryPort;

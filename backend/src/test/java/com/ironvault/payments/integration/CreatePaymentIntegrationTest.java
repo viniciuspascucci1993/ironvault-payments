@@ -4,9 +4,9 @@ import com.ironvault.payments.domain.enums.PaymentStatus;
 
 import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.model.PaymentGatewayResult;
-import com.ironvault.payments.domain.port.in.payment.CreatePaymentCommand;
+import com.ironvault.payments.domain.port.in.command.CreatePaymentCommand;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentUseCase;
-import com.ironvault.payments.domain.port.in.payment.UpdatePaymentStatusCommand;
+import com.ironvault.payments.domain.port.in.command.UpdatePaymentStatusCommand;
 import com.ironvault.payments.domain.port.in.payment.UpdatePaymentStatusUseCase;
 import com.ironvault.payments.domain.port.out.PaymentGatewayPort;
 import com.ironvault.payments.domain.port.out.PaymentIdempotencyRepositoryPort;

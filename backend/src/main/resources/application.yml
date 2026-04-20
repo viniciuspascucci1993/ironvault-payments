@@ -25,4 +25,4 @@ app:
   mercadopago:
     access-token: ${MERCADO_PAGO_ACCESS_TOKEN}
   jwt:
-    secret: ${JWT_SECRET}
+    secret: ${JWT_SECRET:test-secret-key-for-tests-only-minimum-256-bits-long}

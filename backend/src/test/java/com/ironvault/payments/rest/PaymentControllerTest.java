@@ -2,6 +2,7 @@ package com.ironvault.payments.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironvault.payments.adapter.in.dto.PaymentRequest;
+import com.ironvault.payments.adapter.in.security.JwtTokenValidator;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.PaymentGatewayResult;
 import com.ironvault.payments.domain.port.out.PaymentGatewayPort;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -31,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
+@Import(JwtTokenValidator.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 public class PaymentControllerTest {

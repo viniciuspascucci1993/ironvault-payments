@@ -3,7 +3,7 @@ package com.ironvault.payments.application;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.exception.PaymentNotFoundException;
 import com.ironvault.payments.domain.model.Payment;
-import com.ironvault.payments.domain.port.in.payment.UpdatePaymentStatusCommand;
+import com.ironvault.payments.domain.port.in.command.UpdatePaymentStatusCommand;
 import com.ironvault.payments.domain.port.in.payment.UpdatePaymentStatusUseCase;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
 import lombok.extern.slf4j.Slf4j;
