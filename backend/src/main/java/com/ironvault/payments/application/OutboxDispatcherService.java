@@ -25,15 +25,12 @@ public class OutboxDispatcherService {
     public void dispatch() {
 
         var pendingEvents = outboxEventRepository.findPendingEvents();
+        if (pendingEvents.isEmpty()) return;
 
-        if (pendingEvents.isEmpty()) {
-            log.info("Outbox dispatcher found {} pending event(s)", 0);
-
-            for (var event : pendingEvents) {
-                log.info("Dispatching outbox event. paymentId={}", event.getPaymentId());
-                processPaymentAsyncService.processPayment(event.getPaymentId(), event);
-            }
+        for (var event : pendingEvents) {
+            log.info("Dispatching outbox event. paymentId={}", event.getPaymentId());
+            processPaymentAsyncService.processPayment(event.getPaymentId(), event);
         }
-
     }
+
 }

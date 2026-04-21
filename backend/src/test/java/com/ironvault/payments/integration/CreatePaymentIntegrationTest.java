@@ -282,7 +282,7 @@ public class CreatePaymentIntegrationTest {
         outboxDispatcherService.dispatch();
 
         var finalized = awaitFinalStatus(created.getId());
-        assertThat(finalized.getStatus()).isEqualTo(PaymentStatus.PROCESSING);
+        assertThat(finalized.getStatus()).isEqualTo(PaymentStatus.FAILED);
         assertThat(finalized.getFailureReason()).contains("Mock gateway timeout");
     }
 

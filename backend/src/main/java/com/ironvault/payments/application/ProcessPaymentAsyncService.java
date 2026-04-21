@@ -10,13 +10,13 @@ import com.ironvault.payments.domain.port.out.PaymentGatewayPort;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
 import com.ironvault.payments.domain.port.out.TransactionRepositoryPort;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.UUID;
 
 import static com.ironvault.payments.domain.enums.TransactionStatus.CANCELLED;
+
 
 @Service
 @Slf4j
@@ -40,7 +40,6 @@ public class ProcessPaymentAsyncService {
         this.outboxEventRepository = outboxEventRepository;
     }
 
-    @Async
     public void processPayment(UUID paymentId, OutboxEvent outboxEvent) {
         var payment = paymentRepositoryPort.findById(paymentId)
                 .orElse(null);
@@ -88,6 +87,7 @@ public class ProcessPaymentAsyncService {
                     gatewayResult.getStatus(),
                     gatewayResult.getExternalId());
 
+
         } catch (Exception ex) {
             payment.setStatus(PaymentStatus.FAILED);
             payment.setGatewayCode("TECHNICAL_ERROR");
@@ -108,6 +108,8 @@ public class ProcessPaymentAsyncService {
                         transactionRepositoryPort.save(tx);
                     });
 
+            markOutbox(outboxEvent, OutboxEventStatus.FAILED);
+
             log.error("Async gateway processing failed paymentId={} reason={}",
                     payment.getId(),
                     ex.getMessage());
@@ -117,6 +119,7 @@ public class ProcessPaymentAsyncService {
     private TransactionStatus mapToTransactionStatus(PaymentStatus paymentStatus) {
         return switch (paymentStatus) {
             case APPROVED -> TransactionStatus.CAPTURED;
+            case REJECTED -> CANCELLED;
             case FAILED -> TransactionStatus.FAILED;
             default -> TransactionStatus.PENDING;
         };
