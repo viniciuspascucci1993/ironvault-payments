@@ -32,7 +32,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Callable;
 
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.task.SyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.test.context.ActiveProfiles;
 
 
@@ -54,6 +59,7 @@ public class CreatePaymentIntegrationTest {
 
     @MockBean
     private PaymentGatewayPort paymentGatewayPort;
+
 
     @BeforeEach
     void setUp() {

@@ -2,6 +2,7 @@ package com.ironvault.payments.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironvault.payments.adapter.in.security.JwtTokenValidator;
+import com.ironvault.payments.adapter.in.security.SecurityConfig;
 import com.ironvault.payments.adapter.in.web.PaymentWebhookController;
 import com.ironvault.payments.application.HandleMockWebhookService;
 import com.ironvault.payments.application.WebhookProcessingService;
@@ -30,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PaymentWebhookController.class)
-@Import(WebhookSignatureService.class)
+@Import({WebhookSignatureService.class, SecurityConfig.class})
 @ActiveProfiles("test")
 public class PaymentWebhookControllerTest {
 

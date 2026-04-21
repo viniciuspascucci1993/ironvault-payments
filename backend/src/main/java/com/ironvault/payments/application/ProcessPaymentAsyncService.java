@@ -39,6 +39,11 @@ public class ProcessPaymentAsyncService {
 
         try {
             var gatewayResult = paymentGatewayPort.process(payment);
+
+            if (gatewayResult == null) {
+                throw new RuntimeException("Gateway returned null response");
+            }
+
             payment.setExternalId(gatewayResult.getExternalId());
             payment.setStatus(gatewayResult.getStatus());
             payment.setGatewayCode(gatewayResult.getGatewayCode());
