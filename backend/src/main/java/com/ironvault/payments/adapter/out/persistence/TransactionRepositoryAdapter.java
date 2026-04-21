@@ -1,6 +1,7 @@
 package com.ironvault.payments.adapter.out.persistence;
 
 import com.ironvault.payments.adapter.out.entity.TransactionEntity;
+import com.ironvault.payments.adapter.out.mapper.TransactionMapper;
 import com.ironvault.payments.domain.enums.TransactionStatus;
 import com.ironvault.payments.domain.enums.TransactionType;
 import com.ironvault.payments.domain.model.Transaction;
@@ -18,21 +19,23 @@ import java.util.UUID;
 public class TransactionRepositoryAdapter implements TransactionRepositoryPort {
 
     private final TransactionJpaRepository jpaRepository;
+    private final TransactionMapper mapper;
 
-    public TransactionRepositoryAdapter(TransactionJpaRepository jpaRepository) {
+    public TransactionRepositoryAdapter(TransactionJpaRepository jpaRepository, TransactionMapper mapper) {
         this.jpaRepository = jpaRepository;
+        this.mapper = mapper;
     }
 
     @Override
     public Transaction save(Transaction transaction) {
-        return toDomain(jpaRepository.save(toEntity(transaction)));
+        return mapper.toDomain(jpaRepository.save(mapper.toEntity(transaction)));
     }
 
     @Override
     public List<Transaction> findByPaymentId(UUID paymentId) {
         return jpaRepository.findByPaymentId(paymentId)
                 .stream()
-                .map(this::toDomain)
+                .map(mapper::toDomain)
                 .toList();
     }
 
@@ -52,44 +55,11 @@ public class TransactionRepositoryAdapter implements TransactionRepositoryPort {
         }
 
         return new PageResult<>(
-                page.getContent().stream().map(this::toDomain).toList(),
+                page.getContent().stream().map(mapper::toDomain).toList(),
                 page.getNumber(),
                 page.getSize(),
                 page.getTotalElements(),
                 page.getTotalPages()
-        );
-    }
-
-    private TransactionEntity toEntity(Transaction transaction) {
-        TransactionEntity e = new TransactionEntity();
-        e.setId(transaction.getId());
-        e.setPaymentId(transaction.getPaymentId());
-        e.setExternalId(transaction.getExternalId());
-        e.setType(transaction.getType());
-        e.setStatus(transaction.getStatus());
-        e.setAmount(transaction.getAmount());
-        e.setCurrency(transaction.getCurrency());
-        e.setGatewayCode(transaction.getGatewayCode());
-        e.setGatewayMessage(transaction.getGatewayMessage());
-        e.setCreatedAt(transaction.getCreatedAt());
-        e.setUpdatedAt(transaction.getUpdatedAt());
-
-        return e;
-    }
-
-    private Transaction toDomain(TransactionEntity e) {
-        return new Transaction(
-                e.getId(),
-                e.getPaymentId(),
-                e.getExternalId(),
-                e.getType(),
-                e.getStatus(),
-                e.getAmount(),
-                e.getCurrency(),
-                e.getGatewayCode(),
-                e.getGatewayMessage(),
-                e.getCreatedAt(),
-                e.getUpdatedAt()
         );
     }
 }

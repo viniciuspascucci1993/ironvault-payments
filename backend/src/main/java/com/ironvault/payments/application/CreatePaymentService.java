@@ -1,13 +1,12 @@
 package com.ironvault.payments.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ironvault.payments.domain.enums.OutboxEventStatus;
-import com.ironvault.payments.domain.enums.PaymentMethod;
-import com.ironvault.payments.domain.enums.PaymentStatus;
+import com.ironvault.payments.domain.enums.*;
 import com.ironvault.payments.domain.exception.IdempotencyKeyConflictException;
 import com.ironvault.payments.domain.model.OutboxEvent;
 import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.model.PaymentIdempotency;
+import com.ironvault.payments.domain.model.Transaction;
 import com.ironvault.payments.domain.port.in.command.CreatePaymentCommand;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentUseCase;
 import com.ironvault.payments.domain.port.out.OutboxEventRepositoryPort;
@@ -23,6 +22,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+import com.ironvault.payments.domain.port.out.TransactionRepositoryPort;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,15 +36,18 @@ public class CreatePaymentService implements CreatePaymentUseCase {
     private final PaymentRepositoryPort paymentRepositoryPort;
     private final PaymentIdempotencyRepositoryPort idempotencyRepository;
     private final OutboxEventRepositoryPort outboxEventRepository;
+    private final TransactionRepositoryPort transactionRepositoryPort;
     private final ObjectMapper objectMapper;
 
     public CreatePaymentService(PaymentRepositoryPort paymentRepositoryPort,
                                 PaymentIdempotencyRepositoryPort idempotencyRepository,
                                 OutboxEventRepositoryPort outboxEventRepository,
+                                TransactionRepositoryPort transactionRepositoryPort,
                                 ObjectMapper objectMapper) {
         this.paymentRepositoryPort = paymentRepositoryPort;
         this.idempotencyRepository = idempotencyRepository;
         this.outboxEventRepository = outboxEventRepository;
+        this.transactionRepositoryPort = transactionRepositoryPort;
         this.objectMapper = objectMapper;
     }
 
@@ -149,6 +152,20 @@ public class CreatePaymentService implements CreatePaymentUseCase {
 
             idempotencyRepository.save(existing);
         }
+
+        transactionRepositoryPort.save(new Transaction(
+                UUID.randomUUID(),
+                processingPayment.getId(),
+                null,
+                TransactionType.CHARGE,
+                TransactionStatus.PENDING,
+                processingPayment.getAmount(),
+                processingPayment.getCurrency(),
+                null,
+                null,
+                Instant.now(),
+                Instant.now()
+        ));
 
         outboxEventRepository.save(new OutboxEvent(
                 processingPayment.getId(),
