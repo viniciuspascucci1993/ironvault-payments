@@ -1,6 +1,7 @@
 package com.ironvault.payments.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ironvault.payments.adapter.in.security.JwtTokenValidator;
 import com.ironvault.payments.adapter.in.web.PaymentWebhookController;
 import com.ironvault.payments.application.HandleMockWebhookService;
 import com.ironvault.payments.application.WebhookProcessingService;
@@ -44,6 +45,9 @@ public class PaymentWebhookControllerTest {
 
     @MockBean
     private WebhookProcessingService webhookProcessingService;
+
+    @MockBean
+    private JwtTokenValidator jwtTokenValidator;
 
     @MockBean
     private HandleMockWebhookService handleMockWebhookService;
