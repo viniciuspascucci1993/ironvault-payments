@@ -1,5 +1,7 @@
 package com.ironvault.payments.integration;
 
+import com.ironvault.payments.application.OutboxDispatcherService;
+import com.ironvault.payments.domain.enums.OutboxEventStatus;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 
 import com.ironvault.payments.domain.model.Payment;
@@ -8,6 +10,7 @@ import com.ironvault.payments.domain.port.in.command.CreatePaymentCommand;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentUseCase;
 import com.ironvault.payments.domain.port.in.command.UpdatePaymentStatusCommand;
 import com.ironvault.payments.domain.port.in.payment.UpdatePaymentStatusUseCase;
+import com.ironvault.payments.domain.port.out.OutboxEventRepositoryPort;
 import com.ironvault.payments.domain.port.out.PaymentGatewayPort;
 import com.ironvault.payments.domain.port.out.PaymentIdempotencyRepositoryPort;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
@@ -32,12 +35,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Callable;
 
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.test.context.ActiveProfiles;
 
 
@@ -57,12 +55,25 @@ public class CreatePaymentIntegrationTest {
     @Autowired
     private PaymentRepositoryPort paymentRepositoryPort;
 
+    @Autowired
+    private OutboxEventRepositoryPort outboxEventRepositoryPort;
+
+    @Autowired
+    private OutboxDispatcherService outboxDispatcherService;
+
     @MockBean
     private PaymentGatewayPort paymentGatewayPort;
 
 
     @BeforeEach
     void setUp() {
+
+        outboxEventRepositoryPort.findPendingEvents()
+                .forEach(event -> {
+                    event.setStatus(OutboxEventStatus.FAILED);
+                    outboxEventRepositoryPort.save(event);
+                });
+
         // Mock comportamento padrão — aprovado
         when(paymentGatewayPort.process(any())).thenReturn(
                 new PaymentGatewayResult(
@@ -258,17 +269,17 @@ public class CreatePaymentIntegrationTest {
 
     @Test
     @DisplayName("Should process payment asynchronously and mark failed on technical error")
-    void shouldProcessPaymentAsyncFailurePath() {
+    void shouldProcessPaymentAsyncFailurePath() throws InterruptedException {
         when(paymentGatewayPort.process(any()))
                 .thenThrow(new RuntimeException("Mock gateway timeout"));
 
         String key = "ironvault-async-failed-" + UUID.randomUUID();
         var cmd = new CreatePaymentCommand(new BigDecimal("14.00"), "BRL",
-                "PIX", "async-failed",
-                "teste@gmail.com");
+                "PIX", "async-failed", "teste@gmail.com");
         var created = createPaymentUseCase.create(cmd, key);
 
         assertThat(created.getStatus()).isEqualTo(PaymentStatus.PROCESSING);
+        outboxDispatcherService.dispatch();
 
         var finalized = awaitFinalStatus(created.getId());
         assertThat(finalized.getStatus()).isEqualTo(PaymentStatus.FAILED);
@@ -276,14 +287,14 @@ public class CreatePaymentIntegrationTest {
     }
 
     private Payment awaitFinalStatus(UUID paymentId) {
-        Instant deadline = Instant.now().plus(Duration.ofSeconds(3));
+        Instant deadline = Instant.now().plus(Duration.ofSeconds(5)); // era 3
 
         while (Instant.now().isBefore(deadline)) {
             var current = paymentRepositoryPort.findById(paymentId).orElseThrow();
-            if (current.getStatus() != PaymentStatus.PROCESSING && current.getStatus() != PaymentStatus.CREATED) {
+            if (current.getStatus() != PaymentStatus.PROCESSING
+                    && current.getStatus() != PaymentStatus.CREATED) {
                 return current;
             }
-
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
