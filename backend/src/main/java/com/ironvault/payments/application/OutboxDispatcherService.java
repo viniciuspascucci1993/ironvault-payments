@@ -12,7 +12,7 @@ import java.time.Instant;
 @Slf4j
 public class OutboxDispatcherService {
 
-    private final OutboxEventRepositoryPort outboxEventRepository;  // ← trocou
+    private final OutboxEventRepositoryPort outboxEventRepository;
     private final ProcessPaymentAsyncService processPaymentAsyncService;
 
     public OutboxDispatcherService(OutboxEventRepositoryPort outboxEventRepository,
@@ -27,28 +27,11 @@ public class OutboxDispatcherService {
         var pendingEvents = outboxEventRepository.findPendingEvents();
 
         if (pendingEvents.isEmpty()) {
-            return;
-        }
+            log.info("Outbox dispatcher found {} pending event(s)", 0);
 
-        log.info("Outbox dispatcher found {} pending event(s)", pendingEvents.size());
-
-        for (var event : pendingEvents) {
-            try {
-                processPaymentAsyncService.processPayment(event.getPaymentId()); // ← despacha primeiro
-
-                event.setStatus(OutboxEventStatus.PROCESSED); // ← só marca depois que foi aceito
-                event.setProcessedAt(Instant.now());
-                outboxEventRepository.save(event);
-
-                log.info("Outbox event dispatched. paymentId={}", event.getPaymentId());
-
-            } catch (Exception ex) {
-                event.setStatus(OutboxEventStatus.FAILED);
-                event.setProcessedAt(Instant.now());
-                outboxEventRepository.save(event);
-
-                log.error("Outbox dispatch failed. paymentId={} reason={}",
-                        event.getPaymentId(), ex.getMessage());
+            for (var event : pendingEvents) {
+                log.info("Dispatching outbox event. paymentId={}", event.getPaymentId());
+                processPaymentAsyncService.processPayment(event.getPaymentId(), event);
             }
         }
 

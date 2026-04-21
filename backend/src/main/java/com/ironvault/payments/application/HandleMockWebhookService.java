@@ -6,6 +6,7 @@ import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.port.in.webhook.HandleWebhookUseCase;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
 import com.ironvault.payments.domain.port.out.WebhookEventRepositoryPort;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -26,6 +27,7 @@ public class HandleMockWebhookService implements HandleWebhookUseCase {
     }
 
     @Override
+    @Transactional
     public boolean handle(String eventId,
                           String externalId,
                           String status,

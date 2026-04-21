@@ -6,6 +6,7 @@ import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.port.in.command.UpdatePaymentStatusCommand;
 import com.ironvault.payments.domain.port.in.payment.UpdatePaymentStatusUseCase;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,7 @@ public class UpdatePaymentStatusService implements UpdatePaymentStatusUseCase {
     }
 
     @Override
+    @Transactional
     public Payment updateStatus(UpdatePaymentStatusCommand command) {
         Payment payment = paymentRepositoryPort.findById(command.getPaymentId())
                 .orElseThrow(() -> new PaymentNotFoundException(command.getPaymentId().toString()));

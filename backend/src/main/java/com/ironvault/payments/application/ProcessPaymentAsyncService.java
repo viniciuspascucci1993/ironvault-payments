@@ -1,8 +1,11 @@
 package com.ironvault.payments.application;
 
 import com.ironvault.payments.application.mapper.GatewayDeclineReasonMapper;
+import com.ironvault.payments.domain.enums.OutboxEventStatus;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.enums.TransactionStatus;
+import com.ironvault.payments.domain.model.OutboxEvent;
+import com.ironvault.payments.domain.port.out.OutboxEventRepositoryPort;
 import com.ironvault.payments.domain.port.out.PaymentGatewayPort;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
 import com.ironvault.payments.domain.port.out.TransactionRepositoryPort;
@@ -23,24 +26,28 @@ public class ProcessPaymentAsyncService {
     private final PaymentGatewayPort paymentGatewayPort;
     private final GatewayDeclineReasonMapper declineReasonMapper;
     private final TransactionRepositoryPort transactionRepositoryPort;
+    private final OutboxEventRepositoryPort outboxEventRepository;
 
     public ProcessPaymentAsyncService(PaymentRepositoryPort paymentRepositoryPort,
                                       PaymentGatewayPort paymentGatewayPort,
                                       GatewayDeclineReasonMapper declineReasonMapper,
-                                      TransactionRepositoryPort transactionRepositoryPort) {
+                                      TransactionRepositoryPort transactionRepositoryPort,
+                                      OutboxEventRepositoryPort outboxEventRepository) {
         this.paymentRepositoryPort = paymentRepositoryPort;
         this.paymentGatewayPort = paymentGatewayPort;
         this.declineReasonMapper = declineReasonMapper;
         this.transactionRepositoryPort = transactionRepositoryPort;
+        this.outboxEventRepository = outboxEventRepository;
     }
 
     @Async
-    public void processPayment(UUID paymentId) {
+    public void processPayment(UUID paymentId, OutboxEvent outboxEvent) {
         var payment = paymentRepositoryPort.findById(paymentId)
                 .orElse(null);
 
         if (payment == null) {
-            log.warn("Async processing skipped. Payment not found paymentId={}", paymentId);
+            log.warn("Processing skipped. Payment not found paymentId={}", paymentId);
+            markOutbox(outboxEvent, OutboxEventStatus.FAILED);
             return;
         }
 
@@ -74,7 +81,9 @@ public class ProcessPaymentAsyncService {
                         transactionRepositoryPort.save(tx);
                     });
 
-            log.info("Async gateway processing finished paymentId={} status={} externalId={}",
+            markOutbox(outboxEvent, OutboxEventStatus.PROCESSED);
+
+            log.info("Gateway processing finished paymentId={} status={} externalId={}",
                     payment.getId(),
                     gatewayResult.getStatus(),
                     gatewayResult.getExternalId());
@@ -111,5 +120,11 @@ public class ProcessPaymentAsyncService {
             case FAILED -> TransactionStatus.FAILED;
             default -> TransactionStatus.PENDING;
         };
+    }
+
+    private void markOutbox(OutboxEvent event, OutboxEventStatus status) {
+        event.setStatus(status);
+        event.setProcessedAt(Instant.now());
+        outboxEventRepository.save(event);
     }
 }
