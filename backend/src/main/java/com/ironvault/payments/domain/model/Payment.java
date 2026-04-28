@@ -1,6 +1,5 @@
 package com.ironvault.payments.domain.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.ironvault.payments.domain.enums.DeclineReason;
 import com.ironvault.payments.domain.enums.PaymentMethod;
 import com.ironvault.payments.domain.enums.PaymentStatus;
@@ -9,7 +8,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Payment {
 
     private UUID id;

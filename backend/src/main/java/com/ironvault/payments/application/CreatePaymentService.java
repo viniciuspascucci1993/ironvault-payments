@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.ironvault.payments.domain.port.out.TransactionRepositoryPort;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -121,7 +121,7 @@ public class CreatePaymentService implements CreatePaymentUseCase {
                 UUID.randomUUID(),
                 command.getAmount(),
                 command.getCurrency(),
-                PaymentStatus.CREATED,
+                PaymentStatus.PROCESSING,
                 PaymentMethod.valueOf(command.getPaymentMethod()),
                 command.getDescription(),
                 command.getPayerEmail(),
@@ -136,10 +136,7 @@ public class CreatePaymentService implements CreatePaymentUseCase {
                 Instant.now()
         );
 
-        Payment saved = paymentRepositoryPort.save(payment);
-        saved.setStatus(PaymentStatus.PROCESSING);
-        saved.setUpdatedAt(Instant.now());
-        Payment processingPayment = paymentRepositoryPort.save(saved);
+        Payment processingPayment = paymentRepositoryPort.save(payment);
 
         // 🏁 4. UPDATE DA IDEMPOTÊNCIA
         if (!idempotencyKey.isBlank()) {

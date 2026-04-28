@@ -6,7 +6,7 @@ import com.ironvault.payments.adapter.in.security.SecurityConfig;
 import com.ironvault.payments.adapter.in.web.PaymentWebhookController;
 import com.ironvault.payments.application.HandleMockWebhookService;
 import com.ironvault.payments.application.WebhookProcessingService;
-import com.ironvault.payments.application.signature.WebhookSignatureService;
+import com.ironvault.payments.adapter.in.security.WebhookSignature;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PaymentWebhookController.class)
-@Import({WebhookSignatureService.class, SecurityConfig.class})
+@Import({WebhookSignature.class, SecurityConfig.class})
 @ActiveProfiles("test")
 public class PaymentWebhookControllerTest {
 

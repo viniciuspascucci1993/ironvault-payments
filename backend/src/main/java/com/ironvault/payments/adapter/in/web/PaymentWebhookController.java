@@ -2,7 +2,7 @@ package com.ironvault.payments.adapter.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironvault.payments.adapter.in.dto.MockGatewayWebhookRequest;
-import com.ironvault.payments.application.signature.WebhookSignatureService;
+import com.ironvault.payments.adapter.in.security.WebhookSignature;
 import com.ironvault.payments.domain.port.in.webhook.ProcessWebhookUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,17 +25,17 @@ import java.util.stream.Collectors;
 @Tag(name = "Payments Webhook", description = "Operações de pagamento Webhook")
 public class PaymentWebhookController {
 
-    private final WebhookSignatureService webhookSignatureService;
+    private final WebhookSignature webhookSignature;
     private final ProcessWebhookUseCase webhookProcessingService;
     private final ObjectMapper objectMapper;
     private final Validator validator;
 
 
-    public PaymentWebhookController(WebhookSignatureService webhookSignatureService,
+    public PaymentWebhookController(WebhookSignature webhookSignature,
                                     ProcessWebhookUseCase webhookProcessingService,
                                     ObjectMapper objectMapper,
                                     Validator validator) {
-        this.webhookSignatureService = webhookSignatureService;
+        this.webhookSignature = webhookSignature;
         this.webhookProcessingService = webhookProcessingService;
         this.objectMapper = objectMapper;
         this.validator = validator;
@@ -64,7 +64,7 @@ public class PaymentWebhookController {
             )
             @RequestBody byte[] payload) throws IOException {
 
-        webhookSignatureService.validate(signature, timestamp, payload);
+        webhookSignature.validate(signature, timestamp, payload);
 
         MockGatewayWebhookRequest request = objectMapper.readValue(payload, MockGatewayWebhookRequest.class);
 
