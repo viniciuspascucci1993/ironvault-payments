@@ -1,5 +1,6 @@
 package com.ironvault.payments.integration;
 
+import com.ironvault.payments.adapter.in.security.JwtTokenValidator;
 import com.ironvault.payments.application.OutboxDispatcherService;
 import com.ironvault.payments.domain.enums.OutboxEventStatus;
 import com.ironvault.payments.domain.enums.PaymentStatus;
@@ -63,6 +64,9 @@ public class CreatePaymentIntegrationTest {
 
     @MockBean
     private PaymentGatewayPort paymentGatewayPort;
+
+    @MockBean
+    private JwtTokenValidator jwtTokenValidator;
 
 
     @BeforeEach
