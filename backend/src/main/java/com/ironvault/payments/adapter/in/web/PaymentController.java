@@ -4,11 +4,11 @@ import com.ironvault.payments.adapter.in.dto.PaymentRequest;
 import com.ironvault.payments.adapter.in.dto.PaymentResponse;
 import com.ironvault.payments.adapter.in.mapper.PaymentResponseMapper;
 import com.ironvault.payments.adapter.in.dto.UpdatePaymentStatusRequest;
-import com.ironvault.payments.domain.port.in.payment.UpdatePaymentStatusCommand;
+import com.ironvault.payments.domain.port.in.command.UpdatePaymentStatusCommand;
 import com.ironvault.payments.domain.port.in.payment.UpdatePaymentStatusUseCase;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
-import com.ironvault.payments.domain.port.in.payment.CreatePaymentCommand;
+import com.ironvault.payments.domain.port.in.command.CreatePaymentCommand;
 import com.ironvault.payments.domain.port.in.payment.CreatePaymentUseCase;
 import com.ironvault.payments.domain.port.in.payment.GetAllPaymentsUseCase;
 import com.ironvault.payments.domain.port.in.payment.GetPaymentByIdUseCase;
@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -83,6 +84,7 @@ public class PaymentController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Atualizar status do pagamento",
             description = "Atualiza o status de um pagamento existente"

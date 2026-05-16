@@ -1,4 +1,4 @@
-package com.ironvault.payments.application.signature;
+package com.ironvault.payments.adapter.in.security;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -10,13 +10,13 @@ import java.time.Instant;
 import java.util.Base64;
 
 @Service
-public class WebhookSignatureService {
+public class WebhookSignature {
 
     private final String secret;
     private final long toleranceSeconds;
 
-    public WebhookSignatureService(@Value("${app.webhook.mock-secret}") String secret,
-                                   @Value("${app.webhook.signature-tolerance-seconds:300}") long toleranceSeconds) {
+    public WebhookSignature(@Value("${app.webhook.mock-secret}") String secret,
+                            @Value("${app.webhook.signature-tolerance-seconds:300}") long toleranceSeconds) {
         this.secret = secret;
         this.toleranceSeconds = toleranceSeconds;
     }

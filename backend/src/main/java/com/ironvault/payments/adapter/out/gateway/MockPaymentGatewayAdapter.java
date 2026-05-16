@@ -5,12 +5,14 @@ import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.model.PaymentGatewayResult;
 import com.ironvault.payments.domain.port.out.PaymentGatewayPort;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Component
+@Profile("!prod")
 public class MockPaymentGatewayAdapter implements PaymentGatewayPort {
     @Override
     public PaymentGatewayResult process(Payment payment) {

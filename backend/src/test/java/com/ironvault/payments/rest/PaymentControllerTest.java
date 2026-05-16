@@ -2,6 +2,7 @@ package com.ironvault.payments.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironvault.payments.adapter.in.dto.PaymentRequest;
+import com.ironvault.payments.adapter.in.security.JwtTokenValidator;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.PaymentGatewayResult;
 import com.ironvault.payments.domain.port.out.PaymentGatewayPort;
@@ -20,6 +21,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -44,8 +46,18 @@ public class PaymentControllerTest {
     @MockBean
     private PaymentGatewayPort paymentGatewayPort;
 
+    @MockBean
+    private JwtTokenValidator jwtTokenValidator;
+
     @BeforeEach
     void setUp() {
+        doNothing().when(jwtTokenValidator).validateToken(any());
+
+        when(jwtTokenValidator.extractEmail(any()))
+                .thenReturn("teste@gmail.com");
+
+        when(jwtTokenValidator.extractRole(any()))
+                .thenReturn("ADMIN");
         when(paymentGatewayPort.process(any())).thenReturn(
                 new PaymentGatewayResult(
                         "mock-gw-" + UUID.randomUUID(),
@@ -71,6 +83,7 @@ public class PaymentControllerTest {
 
         mockMvc.perform(post("/api/payments")
                         .header("Idempotency-Key", "ironvault-" + UUID.randomUUID())
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -93,6 +106,7 @@ public class PaymentControllerTest {
 
         var createResult = mockMvc.perform(post("/api/payments")
                         .header("Idempotency-Key", "ironvault-" + UUID.randomUUID())
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -115,12 +129,14 @@ public class PaymentControllerTest {
                 """;
 
         mockMvc.perform(patch("/api/payments/{id}/status", paymentId)
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(approveBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("APPROVED"));
 
         mockMvc.perform(patch("/api/payments/{id}/status", paymentId)
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidTransitionBody))
                 .andExpect(status().isConflict());
@@ -139,6 +155,7 @@ public class PaymentControllerTest {
 
         var createResult = mockMvc.perform(post("/api/payments")
                         .header("Idempotency-Key", "ironvault-" + UUID.randomUUID())
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -162,12 +179,14 @@ public class PaymentControllerTest {
                 """;
 
         mockMvc.perform(patch("/api/payments/{id}/status", paymentId)
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(processingBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PROCESSING"));
 
         mockMvc.perform(patch("/api/payments/{id}/status", paymentId)
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(failedBody))
                 .andExpect(status().isOk())
@@ -191,6 +210,7 @@ public class PaymentControllerTest {
 
         var first = mockMvc.perform(post("/api/payments")
                         .header("Idempotency-Key", key)
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -198,6 +218,7 @@ public class PaymentControllerTest {
 
         var second = mockMvc.perform(post("/api/payments")
                         .header("Idempotency-Key", key)
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -228,11 +249,13 @@ public class PaymentControllerTest {
 
         mockMvc.perform(post("/api/payments")
                         .header("Idempotency-Key", key)
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req1)))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/payments")
+                        .header("Authorization", "Bearer test-token")
                         .header("Idempotency-Key", key)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req2)))
@@ -254,6 +277,7 @@ public class PaymentControllerTest {
         // SUA API NÃO VALIDA → então espera 201
         mockMvc.perform(post("/api/payments")
                         .header("Idempotency-Key", "ironvault-" + UUID.randomUUID())
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -274,8 +298,10 @@ public class PaymentControllerTest {
         mockMvc.perform(post("/api/payments")
                         .header("X-Correlation-Id", "REQ-123")
                         .header("Idempotency-Key", "ironvault-" + UUID.randomUUID())
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(header().exists("x-Correlation-Id")); // lowercase (Spring normaliza)
     }
+
 }

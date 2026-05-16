@@ -2,6 +2,7 @@ package com.ironvault.payments.application;
 
 import com.ironvault.payments.application.exception.TechnicalException;
 import com.ironvault.payments.domain.enums.WebhookDeliveryStatus;
+import com.ironvault.payments.domain.port.in.webhook.HandleWebhookUseCase;
 import com.ironvault.payments.domain.port.out.WebhookDeliveryAttemptRepositoryPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.retry.annotation.Backoff;
@@ -17,12 +18,12 @@ import java.util.Objects;
 @Slf4j
 public class WebhookRetryService {
 
-    private final HandleMockWebhookService handleMockWebhookService;
+    private final HandleWebhookUseCase handleWebhookUseCase;
     private final WebhookDeliveryAttemptRepositoryPort attemptRepository;
 
-    public WebhookRetryService(HandleMockWebhookService handleMockWebhookService,
+    public WebhookRetryService(HandleWebhookUseCase handleWebhookUseCase,
                                WebhookDeliveryAttemptRepositoryPort attemptRepository) {
-        this.handleMockWebhookService = handleMockWebhookService;
+        this.handleWebhookUseCase = handleWebhookUseCase;
         this.attemptRepository = attemptRepository;
     }
 
@@ -37,7 +38,7 @@ public class WebhookRetryService {
         int attemptNumber = RetrySynchronizationManager.getContext().getRetryCount() + 1;
 
         try {
-            boolean processed = handleMockWebhookService.handle(
+            boolean processed = handleWebhookUseCase.handle(
                     eventId, externalId, status, gatewayCode, gatewayMessage, failureReason
             );
 

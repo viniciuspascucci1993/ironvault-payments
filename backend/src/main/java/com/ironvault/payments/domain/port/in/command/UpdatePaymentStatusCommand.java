@@ -1,4 +1,4 @@
-package com.ironvault.payments.domain.port.in.payment;
+package com.ironvault.payments.domain.port.in.command;
 
 import com.ironvault.payments.domain.enums.PaymentStatus;
 
