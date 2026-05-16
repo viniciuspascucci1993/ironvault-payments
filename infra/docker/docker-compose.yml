@@ -1,0 +1,24 @@
+name: ironvault-stack
+
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: ironvault
+      POSTGRES_USER: ironvault
+      POSTGRES_PASSWORD: ironvault
+    ports:
+      - "5490:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ironvault-network
+
+volumes:
+  postgres_data:
+
+networks:
+  ironvault-network:

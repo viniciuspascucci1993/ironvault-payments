@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: payments-backend
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: ${PORT:8080}
+
+app:
+  webhook:
+    mock-secret: ${WEBHOOK_SECRET}
+    signature-tolerance-seconds: 300
+  mercadopago:
+    access-token: ${MERCADO_PAGO_ACCESS_TOKEN}
+  jwt:
+    secret: ${JWT_SECRET}
