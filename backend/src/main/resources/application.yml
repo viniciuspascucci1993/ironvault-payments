@@ -21,6 +21,9 @@ server:
   port: ${PORT:8080}
 
 app:
+  notifications:
+    url: ${NOTIFICATIONS_URL}
+    api-key: ${NOTIFICATIONS_API_KEY}
   webhook:
     mock-secret: ${WEBHOOK_SECRET}
     signature-tolerance-seconds: 300

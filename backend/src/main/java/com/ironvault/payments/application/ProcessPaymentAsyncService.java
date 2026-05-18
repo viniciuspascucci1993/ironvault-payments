@@ -1,5 +1,6 @@
 package com.ironvault.payments.application;
 
+import com.ironvault.payments.adapter.out.client.NotificationClient;
 import com.ironvault.payments.application.mapper.GatewayDeclineReasonMapper;
 import com.ironvault.payments.domain.enums.OutboxEventStatus;
 import com.ironvault.payments.domain.enums.PaymentStatus;
@@ -27,17 +28,20 @@ public class ProcessPaymentAsyncService {
     private final GatewayDeclineReasonMapper declineReasonMapper;
     private final TransactionRepositoryPort transactionRepositoryPort;
     private final OutboxEventRepositoryPort outboxEventRepository;
+    private final NotificationClient notificationClient;
 
     public ProcessPaymentAsyncService(PaymentRepositoryPort paymentRepositoryPort,
                                       PaymentGatewayPort paymentGatewayPort,
                                       GatewayDeclineReasonMapper declineReasonMapper,
                                       TransactionRepositoryPort transactionRepositoryPort,
-                                      OutboxEventRepositoryPort outboxEventRepository) {
+                                      OutboxEventRepositoryPort outboxEventRepository,
+                                      NotificationClient notificationClient) {
         this.paymentRepositoryPort = paymentRepositoryPort;
         this.paymentGatewayPort = paymentGatewayPort;
         this.declineReasonMapper = declineReasonMapper;
         this.transactionRepositoryPort = transactionRepositoryPort;
         this.outboxEventRepository = outboxEventRepository;
+        this.notificationClient = notificationClient;
     }
 
     public void processPayment(UUID paymentId, OutboxEvent outboxEvent) {
@@ -82,6 +86,15 @@ public class ProcessPaymentAsyncService {
 
             markOutbox(outboxEvent, OutboxEventStatus.PROCESSED);
 
+            if (payment.getPixCopyPaste() != null) {
+                notificationClient.sendPixGeneratedEvent(
+                        payment.getPayerEmail(),
+                        payment.getAmount().toPlainString(),
+                        payment.getCurrency(),
+                        payment.getPixCopyPaste()
+                );
+            }
+
             log.info("Gateway processing finished paymentId={} status={} externalId={}",
                     payment.getId(),
                     gatewayResult.getStatus(),
@@ -109,6 +122,12 @@ public class ProcessPaymentAsyncService {
                     });
 
             markOutbox(outboxEvent, OutboxEventStatus.FAILED);
+
+            notificationClient.sendPaymentFailedEvent(
+                    payment.getPayerEmail(),
+                    payment.getAmount().toPlainString(),
+                    payment.getFailureReason()
+            );
 
             log.error("Async gateway processing failed paymentId={} reason={}",
                     payment.getId(),
