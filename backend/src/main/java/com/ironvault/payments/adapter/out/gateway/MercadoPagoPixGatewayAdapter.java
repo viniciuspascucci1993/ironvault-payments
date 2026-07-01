@@ -78,6 +78,35 @@ public class MercadoPagoPixGatewayAdapter implements PaymentGatewayPort {
 
     }
 
+    @Override
+    public PaymentGatewayResult getPaymentStatus(String externalId) {
+        try {
+            var response = new PaymentClient().get(Long.parseLong(externalId));
+
+            PaymentStatus status = switch (response.getStatus()) {
+                case "approved" -> PaymentStatus.APPROVED;
+                case "rejected", "cancelled" -> PaymentStatus.FAILED;
+                default -> PaymentStatus.PROCESSING;
+            };
+
+            return new PaymentGatewayResult(
+                    externalId,
+                    status,
+                    response.getStatus(),
+                    response.getStatusDetail(),
+                    null,
+                    null,
+                    null,
+                    null
+            );
+
+        } catch (Exception ex) {
+            log.error("Error fetching payment from MercadoPago. externalId={} error={}", externalId, ex.getMessage());
+            throw new RuntimeException("Error fetching payment: " + ex.getMessage(), ex);
+        }
+    }
+
+
     private com.mercadopago.resources.payment.Payment callMercadoPago(PaymentCreateRequest request)
             throws Exception {
         return new PaymentClient().create(request);
