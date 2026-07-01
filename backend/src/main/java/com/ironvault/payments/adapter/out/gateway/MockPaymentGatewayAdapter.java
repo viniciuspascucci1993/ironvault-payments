@@ -47,6 +47,20 @@ public class MockPaymentGatewayAdapter implements PaymentGatewayPort {
         );
     }
 
+    @Override
+    public PaymentGatewayResult getPaymentStatus(String externalId) {
+        return new PaymentGatewayResult(
+                externalId,
+                PaymentStatus.APPROVED,
+                "APPROVED",
+                "Mock payment approved",
+                null,
+                null,
+                null,
+                null
+        );
+    }
+
     private boolean isApproved(BigDecimal amount) {
         return amount.remainder(BigDecimal.valueOf(2)).compareTo(BigDecimal.ZERO) == 0;
     }

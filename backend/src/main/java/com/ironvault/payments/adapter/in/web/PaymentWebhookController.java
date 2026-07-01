@@ -1,8 +1,10 @@
 package com.ironvault.payments.adapter.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ironvault.payments.adapter.in.dto.MercadoPagoWebhookRequest;
 import com.ironvault.payments.adapter.in.dto.MockGatewayWebhookRequest;
 import com.ironvault.payments.adapter.in.security.WebhookSignature;
+import com.ironvault.payments.domain.port.in.webhook.HandleMercadoPagoWebhookUseCase;
 import com.ironvault.payments.domain.port.in.webhook.ProcessWebhookUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,17 +28,20 @@ import java.util.stream.Collectors;
 public class PaymentWebhookController {
 
     private final WebhookSignature webhookSignature;
-    private final ProcessWebhookUseCase webhookProcessingService;
+    private final ProcessWebhookUseCase processWebhookUseCase;
+    private final HandleMercadoPagoWebhookUseCase handleMercadoPagoWebhookUseCase;
     private final ObjectMapper objectMapper;
     private final Validator validator;
 
 
     public PaymentWebhookController(WebhookSignature webhookSignature,
-                                    ProcessWebhookUseCase webhookProcessingService,
+                                    ProcessWebhookUseCase processWebhookUseCase,
+                                    HandleMercadoPagoWebhookUseCase handleMercadoPagoWebhookUseCase,
                                     ObjectMapper objectMapper,
                                     Validator validator) {
         this.webhookSignature = webhookSignature;
-        this.webhookProcessingService = webhookProcessingService;
+        this.processWebhookUseCase = processWebhookUseCase;
+        this.handleMercadoPagoWebhookUseCase = handleMercadoPagoWebhookUseCase;
         this.objectMapper = objectMapper;
         this.validator = validator;
     }
@@ -76,7 +81,7 @@ public class PaymentWebhookController {
             throw new IllegalArgumentException("Invalid webhook payload - " + message);
         }
 
-        webhookProcessingService.process(
+        processWebhookUseCase.process(
                 request.getEventId(),
                 request.getExternalId(),
                 request.getStatus(),
@@ -88,6 +93,37 @@ public class PaymentWebhookController {
         return ResponseEntity.accepted().body(Map.of(
                 "received", true,
                 "eventId", request.getEventId()
+        ));
+    }
+
+    @PostMapping("/mercadopago")
+    @Operation(
+            summary = "Receber webhook MercadoPago",
+            description = "Endpoint para receber notificações de pagamento do MercadoPago"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Webhook recebido"),
+            @ApiResponse(responseCode = "400", description = "Payload inválido")
+    })
+    public ResponseEntity<Map<String, Object>> handleMercadoPagoWebhook(
+            @RequestBody MercadoPagoWebhookRequest request) {
+
+        if (!"payment".equals(request.getType())) {
+            return ResponseEntity.ok(Map.of("received", true, "ignored", true));
+        }
+
+        if (request.getData() == null || request.getData().getId() == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Missing payment id"));
+        }
+
+        handleMercadoPagoWebhookUseCase.handle(
+                String.valueOf(request.getId()),
+                request.getData().getId()
+        );
+
+        return ResponseEntity.ok(Map.of(
+                "received", true,
+                "externalId", request.getData().getId()
         ));
     }
 }
