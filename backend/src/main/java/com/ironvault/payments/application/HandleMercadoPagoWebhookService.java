@@ -35,7 +35,7 @@ public class HandleMercadoPagoWebhookService implements HandleMercadoPagoWebhook
             return false;
         }
 
-        Payment payment = paymentRepositoryPort.findByExternalId(eventId)
+        Payment payment = paymentRepositoryPort.findByExternalId(externalId)
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found for externalId: " + externalId));
 
         PaymentGatewayResult paymentGatewayResult = paymentGatewayPort.getPaymentStatus(externalId);
