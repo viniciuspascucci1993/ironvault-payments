@@ -21,6 +21,9 @@ server:
   port: ${PORT:8080}
 
 app:
+  auth:
+    url: ${AUTH_URL}
+    internal-api-key: ${INTERNAL_API_KEY}
   notifications:
     url: ${NOTIFICATIONS_URL}
     api-key: ${NOTIFICATIONS_API_KEY}
