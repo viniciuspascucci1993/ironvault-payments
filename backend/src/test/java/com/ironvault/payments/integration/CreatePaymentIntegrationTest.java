@@ -96,7 +96,7 @@ public class CreatePaymentIntegrationTest {
 
         String key = "ironvault-test-123";
 
-        var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
+        var cmd = new CreatePaymentCommand(UUID.randomUUID(), BigDecimal.valueOf(150),
                 "BRL",
                 "PIX",
                 "test-description",
@@ -116,7 +116,7 @@ public class CreatePaymentIntegrationTest {
     @DisplayName("Should fail when idempotency key is not provided")
     void shouldFailWhenIdempotencyKeyIsMissing() {
 
-        var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
+        var cmd = new CreatePaymentCommand(UUID.randomUUID(), BigDecimal.valueOf(150),
                 "BRL",
                 "PIX",
                 "test-description",
@@ -134,7 +134,7 @@ public class CreatePaymentIntegrationTest {
 
         String key = "ironvault-concurrent-" + UUID.randomUUID();
 
-        var cmd = new CreatePaymentCommand(BigDecimal.valueOf(150),
+        var cmd = new CreatePaymentCommand(UUID.randomUUID(), BigDecimal.valueOf(150),
                 "BRL",
                 "PIX",
                 "test-description",
@@ -184,12 +184,12 @@ public class CreatePaymentIntegrationTest {
 
         String key = "ironvault-test-456";
 
-        var cmd1 = new CreatePaymentCommand(BigDecimal.valueOf(200),
+        var cmd1 = new CreatePaymentCommand(UUID.randomUUID(), BigDecimal.valueOf(200),
                 "BRL",
                 "PIX",
                 "test-description",
                 "teste@gmail.com");
-        var cmd2 = new CreatePaymentCommand(BigDecimal.valueOf(300),
+        var cmd2 = new CreatePaymentCommand(UUID.randomUUID(), BigDecimal.valueOf(300),
                 "BRL",
                 "PIX",
                 "test-description",
@@ -207,12 +207,12 @@ public class CreatePaymentIntegrationTest {
     void shouldThrowConflictWhenDescriptionChanges() {
         String key = "ironvault-test-789";
 
-        var cmd1 = new CreatePaymentCommand(BigDecimal.valueOf(200),
+        var cmd1 = new CreatePaymentCommand(UUID.randomUUID(), BigDecimal.valueOf(200),
                 "BRL",
                 "PIX",
                 "description-1",
                 "teste@gmail.com");
-        var cmd2 = new CreatePaymentCommand(BigDecimal.valueOf(200),
+        var cmd2 = new CreatePaymentCommand(UUID.randomUUID(), BigDecimal.valueOf(200),
                 "BRL",
                 "PIX",
                 "description-2",
@@ -231,7 +231,7 @@ public class CreatePaymentIntegrationTest {
     void shouldEnforceValidPaymentStatusTransitions() {
         String key = "ironvault-transition-test-1";
 
-        var cmd = new CreatePaymentCommand(BigDecimal.valueOf(250),
+        var cmd = new CreatePaymentCommand(UUID.randomUUID(), BigDecimal.valueOf(250),
                 "BRL",
                 "PIX",
                 "transition-test",
@@ -259,7 +259,7 @@ public class CreatePaymentIntegrationTest {
                 .hasMessageContaining("Invalid status transition");
 
         var processingPayment = createPaymentUseCase.create(
-                new CreatePaymentCommand(BigDecimal.valueOf(251), "BRL", "PIX",
+                new CreatePaymentCommand(UUID.randomUUID(), BigDecimal.valueOf(251), "BRL", "PIX",
                         "transition-failure-test",
                         "teste@gmail.com"),
                 "ironvault-transition-test-2"
@@ -278,7 +278,7 @@ public class CreatePaymentIntegrationTest {
                 .thenThrow(new RuntimeException("Mock gateway timeout"));
 
         String key = "ironvault-async-failed-" + UUID.randomUUID();
-        var cmd = new CreatePaymentCommand(new BigDecimal("14.00"), "BRL",
+        var cmd = new CreatePaymentCommand(UUID.randomUUID(), new BigDecimal("14.00"), "BRL",
                 "PIX", "async-failed", "teste@gmail.com");
         var created = createPaymentUseCase.create(cmd, key);
 
