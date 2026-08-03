@@ -1,5 +1,6 @@
 package com.ironvault.payments.adapter.in.common;
 
+import com.ironvault.payments.domain.exception.PaymentAccessDeniedException;
 import com.ironvault.payments.domain.exception.PaymentNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -83,6 +84,21 @@ public class GlobalExceptionHandler {
                         request.getRequestURI()
                 )
         );
+    }
+
+    @ExceptionHandler(PaymentAccessDeniedException.class)
+    public ResponseEntity<ApiError> handleAccessDenied(
+            PaymentAccessDeniedException ex,
+            HttpServletRequest request) {
+
+        ApiError error = new ApiError(
+                HttpStatus.FORBIDDEN.value(),
+                "Forbidden",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
     @ExceptionHandler(MissingRequestHeaderException.class)

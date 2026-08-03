@@ -45,12 +45,12 @@ public class PaymentRepositoryAdapter implements PaymentRepositoryPort {
     }
 
     @Override
-    public PageResult<Payment> findAllWithFilters(PaymentStatus status,
+    public PageResult<Payment> findAllWithFilters(UUID merchantId, PaymentStatus status,
                                                   String currency,
                                                   BigDecimal minAmount,
                                                   BigDecimal maxAmount,
                                                   PageQuery pageQuery) {
-        var spec = PaymentSpecification.withFilters(status, currency, minAmount, maxAmount);
+        var spec = PaymentSpecification.withFilters(merchantId, status, currency, minAmount, maxAmount);
         var pageable = PageRequest.of(pageQuery.getPage(), pageQuery.getSize());
         Page<Payment> page = paymentJpaRepository.findAll(spec, pageable)
                 .map(mapper::toDomain);

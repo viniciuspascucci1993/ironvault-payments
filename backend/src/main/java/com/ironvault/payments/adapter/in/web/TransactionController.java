@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,10 +42,15 @@ public class TransactionController {
     })
     public ResponseEntity<List<TransactionResponse>> getByPaymentId(
             @Parameter(description = "ID do pagamento", required = true)
-            @PathVariable("id") UUID id) {
+            @PathVariable("id") UUID id,
+            HttpServletRequest httpRequest) {
+
+        String merchantIdAttr = (String) httpRequest.getAttribute("merchantId");
+        UUID requesterMerchantId = merchantIdAttr != null ? UUID.fromString(merchantIdAttr) : null;
+        boolean isAdmin = httpRequest.isUserInRole("ADMIN");
 
         List<TransactionResponse> response = getTransactionsByPaymentUseCase
-                .getByPaymentId(id)
+                .getByPaymentId(id, requesterMerchantId, isAdmin)
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -69,7 +75,8 @@ public class TransactionController {
             @RequestParam(defaultValue = "0") int page,
 
             @Parameter(description = "Tamanho da página")
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest httpRequest) {
 
         TransactionType transactionType = type != null
                 ? TransactionType.valueOf(type.toUpperCase()) : null;
@@ -77,8 +84,13 @@ public class TransactionController {
         TransactionStatus transactionStatus = status != null
                 ? TransactionStatus.valueOf(status.toUpperCase()) : null;
 
+        String merchantIdAttr = (String) httpRequest.getAttribute("merchantId");
+        UUID requesterMerchantId = merchantIdAttr != null ? UUID.fromString(merchantIdAttr) : null;
+        boolean isAdmin = httpRequest.isUserInRole("ADMIN");
+        UUID merchantIdFilter = isAdmin ? null : requesterMerchantId;
+
         PageResult<TransactionResponse> response = getAllTransactionsUseCase
-                .getAll(transactionType, transactionStatus, new PageQuery(page, size))
+                .getAll(merchantIdFilter, transactionType, transactionStatus, new PageQuery(page, size))
                 .map(this::toResponse);
 
         return ResponseEntity.ok(response);

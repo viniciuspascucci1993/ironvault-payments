@@ -9,6 +9,8 @@ import com.ironvault.payments.domain.query.PageQuery;
 import com.ironvault.payments.domain.query.PageResult;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class GetAllTransactionsService implements GetAllTransactionsUseCase {
 
@@ -19,7 +21,7 @@ public class GetAllTransactionsService implements GetAllTransactionsUseCase {
     }
 
     @Override
-    public PageResult<Transaction> getAll(TransactionType type, TransactionStatus status, PageQuery pageQuery) {
-        return transactionRepositoryPort.findAll(type, status, pageQuery);
+    public PageResult<Transaction> getAll(UUID merchantId, TransactionType type, TransactionStatus status, PageQuery pageQuery) {
+        return transactionRepositoryPort.findAll(merchantId, type, status, pageQuery);
     }
 }

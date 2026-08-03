@@ -2,6 +2,7 @@ package com.ironvault.payments.adapter.out.persistence;
 
 import com.ironvault.payments.adapter.out.entity.TransactionEntity;
 import com.ironvault.payments.adapter.out.mapper.TransactionMapper;
+import com.ironvault.payments.adapter.out.persistence.specification.TransactionSpecification;
 import com.ironvault.payments.domain.enums.TransactionStatus;
 import com.ironvault.payments.domain.enums.TransactionType;
 import com.ironvault.payments.domain.model.Transaction;
@@ -40,19 +41,11 @@ public class TransactionRepositoryAdapter implements TransactionRepositoryPort {
     }
 
     @Override
-    public PageResult<Transaction> findAll(TransactionType type, TransactionStatus status, PageQuery pageQuery) {
+    public PageResult<Transaction> findAll(UUID merchantId, TransactionType type, TransactionStatus status, PageQuery pageQuery) {
+        var spec = TransactionSpecification.withFilters(merchantId, type, status);
         var pageable = PageRequest.of(pageQuery.getPage(), pageQuery.getSize());
-        Page<TransactionEntity> page;
 
-        if (type != null && status != null) {
-            page = jpaRepository.findByTypeAndStatus(type, status, pageable);
-        } else if (type != null) {
-            page = jpaRepository.findByType(type, pageable);
-        } else if (status != null) {
-            page = jpaRepository.findByStatus(status, pageable);
-        } else {
-            page = jpaRepository.findAll(pageable);
-        }
+        Page<TransactionEntity> page = jpaRepository.findAll(spec, pageable);
 
         return new PageResult<>(
                 page.getContent().stream().map(mapper::toDomain).toList(),
