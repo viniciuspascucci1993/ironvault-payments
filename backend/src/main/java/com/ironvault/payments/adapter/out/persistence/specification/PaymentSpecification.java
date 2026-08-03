@@ -5,10 +5,12 @@ import com.ironvault.payments.domain.enums.PaymentStatus;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public class PaymentSpecification {
 
     public static Specification<PaymentEntity> withFilters(
+            UUID merchantId,
             PaymentStatus status,
             String currency,
             BigDecimal minAmount,
@@ -18,6 +20,11 @@ public class PaymentSpecification {
         return (root, query, cb) -> {
 
             var predicates = cb.conjunction();
+
+            if (merchantId != null) {
+                predicates = cb.and(predicates,
+                        cb.equal(root.get("merchantId"), merchantId));
+            }
 
             if (status != null) {
                 predicates = cb.and(predicates,

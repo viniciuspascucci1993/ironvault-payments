@@ -13,5 +13,5 @@ public interface TransactionRepositoryPort {
 
     Transaction save(Transaction transaction);
     List<Transaction> findByPaymentId(UUID paymentId);
-    PageResult<Transaction> findAll(TransactionType type, TransactionStatus status, PageQuery pageQuery);
+    PageResult<Transaction> findAll(UUID merchantId, TransactionType type, TransactionStatus status, PageQuery pageQuery);
 }

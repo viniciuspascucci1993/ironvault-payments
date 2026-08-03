@@ -11,6 +11,7 @@ public class Transaction {
 
     private UUID id;
     private UUID paymentId;
+    private UUID merchantId;
     private String externalId;
     private TransactionType type;
     private TransactionStatus status;
@@ -24,6 +25,7 @@ public class Transaction {
     public Transaction() { }
 
     public Transaction(UUID id, UUID paymentId,
+                       UUID merchantId,
                        String externalId,
                        TransactionType type,
                        TransactionStatus status,
@@ -35,6 +37,7 @@ public class Transaction {
                        Instant updatedAt) {
         this.id = id;
         this.paymentId = paymentId;
+        this.merchantId = merchantId;
         this.externalId = externalId;
         this.type = type;
         this.status = status;
@@ -60,6 +63,14 @@ public class Transaction {
 
     public void setPaymentId(UUID paymentId) {
         this.paymentId = paymentId;
+    }
+
+    public UUID getMerchantId() {
+        return merchantId;
+    }
+
+    public void setMerchantId(UUID merchantId) {
+        this.merchantId = merchantId;
     }
 
     public String getExternalId() {

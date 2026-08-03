@@ -17,6 +17,7 @@ public interface PaymentRepositoryPort {
 
 
     PageResult<Payment> findAllWithFilters(
+            UUID merchantId,
             PaymentStatus status,
             String currency,
             BigDecimal minAmount,

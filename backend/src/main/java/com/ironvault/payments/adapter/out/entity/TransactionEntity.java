@@ -18,6 +18,9 @@ public class TransactionEntity {
     @Column(name = "payment_id", nullable = false)
     private UUID paymentId;
 
+    @Column(name = "merchant_id", nullable = false)
+    private UUID merchantId;
+
     private String externalId;
 
     @Enumerated(EnumType.STRING)
@@ -35,7 +38,7 @@ public class TransactionEntity {
 
     public TransactionEntity() { }
 
-    public TransactionEntity(UUID id, UUID paymentId,
+    public TransactionEntity(UUID id, UUID paymentId, UUID merchantId,
                              String externalId,
                              TransactionType type,
                              TransactionStatus status,
@@ -47,6 +50,7 @@ public class TransactionEntity {
                              Instant updatedAt) {
         this.id = id;
         this.paymentId = paymentId;
+        this.merchantId = merchantId;
         this.externalId = externalId;
         this.type = type;
         this.status = status;
@@ -72,6 +76,14 @@ public class TransactionEntity {
 
     public void setPaymentId(UUID paymentId) {
         this.paymentId = paymentId;
+    }
+
+    public UUID getMerchantId() {
+        return merchantId;
+    }
+
+    public void setMerchantId(UUID merchantId) {
+        this.merchantId = merchantId;
     }
 
     public String getExternalId() {

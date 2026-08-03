@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -69,13 +70,20 @@ public class PaymentController {
     })
     public ResponseEntity<PaymentResponse> create(
             @RequestHeader(value = "Idempotency-Key") String idempotencyKey,
-            @Valid @RequestBody PaymentRequest request) {
+            @Valid @RequestBody PaymentRequest request,
+            HttpServletRequest httpRequest) {
 
         // Validate idempotencyKey
         IdempotencyKeyValidator.validateIdempotencyKey(idempotencyKey);
 
+        String merchantIdAttr = (String) httpRequest.getAttribute("merchantId");
+        if (merchantIdAttr == null) {
+            throw new IllegalStateException("merchantId not found in authentication token");
+        }
+        UUID merchantId = UUID.fromString(merchantIdAttr);
+
         Payment payment = createPaymentUseCase.create(
-                new CreatePaymentCommand(request.getAmount(), request.getCurrency(), request.getPaymentMethod(),
+                new CreatePaymentCommand(merchantId, request.getAmount(), request.getCurrency(), request.getPaymentMethod(),
                         request.getDescription(), request.getPayerEmail()),
                 idempotencyKey
         );
@@ -122,9 +130,14 @@ public class PaymentController {
             @ApiResponse(responseCode = "200", description = "Pagamento encontrado"),
             @ApiResponse(responseCode = "404", description = "Pagamento não encontrado")
     })
-    public ResponseEntity<PaymentResponse> getById(@PathVariable("id")UUID id) {
+    public ResponseEntity<PaymentResponse> getById(@PathVariable("id")UUID id, HttpServletRequest httpRequest) {
 
-        Payment payment = getPaymentByIdUseCase.getById(id);
+        String merchantIdAttr = (String) httpRequest.getAttribute("merchantId");
+        UUID requesterMerchantId = merchantIdAttr != null ? UUID.fromString(merchantIdAttr) : null;
+
+        boolean isAdmin = httpRequest.isUserInRole("ADMIN");
+
+        Payment payment = getPaymentByIdUseCase.getById(id, requesterMerchantId, isAdmin);
         return ResponseEntity.ok(mapper.toResponse(payment));
     }
 
@@ -154,7 +167,8 @@ public class PaymentController {
             @RequestParam(defaultValue = "0") int page,
 
             @Parameter(description = "Tamanho da página (máximo " + MAX_PAGE_SIZE + ")")
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest httpRequest) {
 
         if (size > MAX_PAGE_SIZE) {
             throw new IllegalArgumentException("Page size must not exceed " + MAX_PAGE_SIZE);
@@ -182,7 +196,14 @@ public class PaymentController {
             );
         }
 
+        String merchantIdAttr = (String) httpRequest.getAttribute("merchantId");
+        UUID requesterMerchantId = merchantIdAttr != null ? UUID.fromString(merchantIdAttr) : null;
+        boolean isAdmin = httpRequest.isUserInRole("ADMIN");
+
+        UUID merchantIdFilter = isAdmin ? null : requesterMerchantId;
+
         PaymentFilter filter = new PaymentFilter(
+                merchantIdFilter,
                 paymentStatus,
                 currency,
                 minAmount,

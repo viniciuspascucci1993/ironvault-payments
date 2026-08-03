@@ -34,6 +34,10 @@ public class JwtTokenValidator {
         return extractClaims(token).get("role", String.class);
     }
 
+    public String extractMerchantId(String token) {
+        return extractClaims(token).get("merchantId", String.class);
+    }
+
     private Claims extractClaims(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())

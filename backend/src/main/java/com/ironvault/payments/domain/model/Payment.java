@@ -11,6 +11,7 @@ import java.util.UUID;
 public class Payment {
 
     private UUID id;
+    private UUID merchantId;
     private BigDecimal amount;
     private String currency;
 
@@ -37,7 +38,7 @@ public class Payment {
 
     public Payment() {}
 
-    public Payment(UUID id, BigDecimal amount, String currency,
+    public Payment(UUID id, UUID merchantId, BigDecimal amount, String currency,
                    PaymentStatus status,
                    PaymentMethod paymentMethod,
                    String description,
@@ -52,6 +53,7 @@ public class Payment {
                    Instant createdAt,
                    Instant updatedAt) {
         this.id = id;
+        this.merchantId = merchantId;
         this.amount = amount;
         this.currency = currency;
         this.status = status;
@@ -75,6 +77,14 @@ public class Payment {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public UUID getMerchantId() {
+        return merchantId;
+    }
+
+    public void setMerchantId(UUID merchantId) {
+        this.merchantId = merchantId;
     }
 
     public BigDecimal getAmount() {

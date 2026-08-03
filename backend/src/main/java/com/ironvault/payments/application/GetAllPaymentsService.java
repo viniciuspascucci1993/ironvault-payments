@@ -21,6 +21,7 @@ public class GetAllPaymentsService implements GetAllPaymentsUseCase {
     public PageResult<Payment> getAllWithFilters(PaymentFilter filter, PageQuery pageQuery) {
 
         return paymentRepositoryPort.findAllWithFilters(
+                filter.getMerchantId(),
                 filter.getStatus(),
                 filter.getCurrency(),
                 filter.getMinAmount(),
