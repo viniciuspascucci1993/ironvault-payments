@@ -6,5 +6,5 @@ import java.util.UUID;
 
 public interface GetPaymentByIdUseCase {
 
-    Payment getById(UUID id);
+    Payment getById(UUID id, UUID requesterMerchantId, boolean isAdmin);
 }

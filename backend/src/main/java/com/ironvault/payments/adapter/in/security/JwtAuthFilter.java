@@ -33,6 +33,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 String email = jwtTokenValidator.extractEmail(token);
                 String role = jwtTokenValidator.extractRole(token);
+                String merchantId = jwtTokenValidator.extractMerchantId(token);
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
@@ -42,6 +43,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         );
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                if (merchantId != null) {
+                    request.setAttribute("merchantId", merchantId);
+                }
 
             } catch (Exception e) {
                 SecurityContextHolder.clearContext();

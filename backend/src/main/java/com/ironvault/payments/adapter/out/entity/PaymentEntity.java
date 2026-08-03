@@ -15,6 +15,10 @@ public class PaymentEntity {
 
     @Id
     private UUID id;
+
+    @Column(name = "merchant_id", nullable = false)
+    private UUID merchantId;
+
     private BigDecimal amount;
     private String currency;
 
@@ -51,7 +55,7 @@ public class PaymentEntity {
 
     public PaymentEntity() { }
 
-    public PaymentEntity(UUID id, BigDecimal amount,
+    public PaymentEntity(UUID id, UUID merchantId, BigDecimal amount,
                          String currency,
                          PaymentStatus status,
                          PaymentMethod paymentMethod,
@@ -67,6 +71,7 @@ public class PaymentEntity {
                          Instant createdAt,
                          Instant updatedAt) {
         this.id = id;
+        this.merchantId = merchantId;
         this.amount = amount;
         this.currency = currency;
         this.status = status;
@@ -90,6 +95,14 @@ public class PaymentEntity {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public UUID getMerchantId() {
+        return merchantId;
+    }
+
+    public void setMerchantId(UUID merchantId) {
+        this.merchantId = merchantId;
     }
 
     public BigDecimal getAmount() {

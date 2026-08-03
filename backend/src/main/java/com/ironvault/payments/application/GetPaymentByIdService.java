@@ -1,5 +1,6 @@
 package com.ironvault.payments.application;
 
+import com.ironvault.payments.domain.exception.PaymentAccessDeniedException;
 import com.ironvault.payments.domain.exception.PaymentNotFoundException;
 import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.port.in.payment.GetPaymentByIdUseCase;
@@ -18,8 +19,14 @@ public class GetPaymentByIdService implements GetPaymentByIdUseCase {
     }
 
     @Override
-    public Payment getById(UUID id) {
-        return paymentRepositoryPort.findById(id)
-                .orElseThrow(()  -> new PaymentNotFoundException("Payment not found"));
+    public Payment getById(UUID id, UUID requesterMerchantId, boolean isAdmin) {
+        Payment payment = paymentRepositoryPort.findById(id)
+                .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
+
+        if (!isAdmin && !payment.getMerchantId().equals(requesterMerchantId)) {
+            throw new PaymentAccessDeniedException("You do not have access to this payment");
+        }
+
+        return payment;
     }
 }

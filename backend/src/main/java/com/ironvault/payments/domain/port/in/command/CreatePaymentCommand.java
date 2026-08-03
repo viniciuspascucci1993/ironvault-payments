@@ -2,21 +2,32 @@ package com.ironvault.payments.domain.port.in.command;
 
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public class CreatePaymentCommand {
 
+    private UUID merchantId;
     private BigDecimal amount;
     private String currency;
     private String paymentMethod;
     private String description;
     private String payerEmail;
 
-    public CreatePaymentCommand(BigDecimal amount, String currency, String paymentMethod, String description, String payerEmail) {
+    public CreatePaymentCommand(UUID merchantId, BigDecimal amount, String currency, String paymentMethod, String description, String payerEmail) {
+        this.merchantId = merchantId;
         this.amount = amount;
         this.currency = currency;
         this.paymentMethod = paymentMethod;
         this.description = description;
         this.payerEmail = payerEmail;
+    }
+
+    public UUID getMerchantId() {
+        return merchantId;
+    }
+
+    public void setMerchantId(UUID merchantId) {
+        this.merchantId = merchantId;
     }
 
     public BigDecimal getAmount() {

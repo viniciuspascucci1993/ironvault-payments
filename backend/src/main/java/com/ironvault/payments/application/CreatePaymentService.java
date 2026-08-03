@@ -119,6 +119,7 @@ public class CreatePaymentService implements CreatePaymentUseCase {
         // processamento normal
         Payment payment = new Payment(
                 UUID.randomUUID(),
+                command.getMerchantId(),
                 command.getAmount(),
                 command.getCurrency(),
                 PaymentStatus.PROCESSING,
@@ -153,6 +154,7 @@ public class CreatePaymentService implements CreatePaymentUseCase {
         transactionRepositoryPort.save(new Transaction(
                 UUID.randomUUID(),
                 processingPayment.getId(),
+                processingPayment.getMerchantId(),
                 null,
                 TransactionType.CHARGE,
                 TransactionStatus.PENDING,
