@@ -30,6 +30,10 @@ app:
   webhook:
     mock-secret: ${WEBHOOK_SECRET}
     signature-tolerance-seconds: 300
+  merchants:
+    url: ${MERCHANTS_URL}
+  ironvault:
+    commission-percentage: ${COMMISSION_PERCENTAGE:1.5}
   mercadopago:
     access-token: ${MERCADO_PAGO_ACCESS_TOKEN}
   jwt:
