@@ -1,18 +1,23 @@
 package com.ironvault.payments.application;
 
+import com.ironvault.payments.adapter.out.client.MerchantsClient;
 import com.ironvault.payments.adapter.out.client.NotificationClient;
 import com.ironvault.payments.application.mapper.GatewayDeclineReasonMapper;
 import com.ironvault.payments.domain.enums.OutboxEventStatus;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.enums.TransactionStatus;
 import com.ironvault.payments.domain.model.OutboxEvent;
+import com.ironvault.payments.domain.model.PaymentGatewayRequest;
 import com.ironvault.payments.domain.port.out.OutboxEventRepositoryPort;
 import com.ironvault.payments.domain.port.out.PaymentGatewayPort;
 import com.ironvault.payments.domain.port.out.PaymentRepositoryPort;
 import com.ironvault.payments.domain.port.out.TransactionRepositoryPort;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -29,19 +34,25 @@ public class ProcessPaymentAsyncService {
     private final TransactionRepositoryPort transactionRepositoryPort;
     private final OutboxEventRepositoryPort outboxEventRepository;
     private final NotificationClient notificationClient;
+    private final MerchantsClient merchantsClient;
+
+    @Value("${app.ironvault.commission-percentage}")
+    private BigDecimal commissionPercentage;
 
     public ProcessPaymentAsyncService(PaymentRepositoryPort paymentRepositoryPort,
                                       PaymentGatewayPort paymentGatewayPort,
                                       GatewayDeclineReasonMapper declineReasonMapper,
                                       TransactionRepositoryPort transactionRepositoryPort,
                                       OutboxEventRepositoryPort outboxEventRepository,
-                                      NotificationClient notificationClient) {
+                                      NotificationClient notificationClient,
+                                      MerchantsClient merchantsClient) {
         this.paymentRepositoryPort = paymentRepositoryPort;
         this.paymentGatewayPort = paymentGatewayPort;
         this.declineReasonMapper = declineReasonMapper;
         this.transactionRepositoryPort = transactionRepositoryPort;
         this.outboxEventRepository = outboxEventRepository;
         this.notificationClient = notificationClient;
+        this.merchantsClient = merchantsClient;
     }
 
     public void processPayment(UUID paymentId, OutboxEvent outboxEvent) {
@@ -55,7 +66,14 @@ public class ProcessPaymentAsyncService {
         }
 
         try {
-            var gatewayResult = paymentGatewayPort.process(payment);
+            String sellerAccessToken = merchantsClient.getMerchantAccessToken(payment.getMerchantId());
+            BigDecimal applicationFee = payment.getAmount()
+                    .multiply(commissionPercentage)
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+            var gatewayResult = paymentGatewayPort.process(
+                    new PaymentGatewayRequest(payment, sellerAccessToken, applicationFee)
+            );
 
             if (gatewayResult == null) {
                 throw new RuntimeException("Gateway returned null response");

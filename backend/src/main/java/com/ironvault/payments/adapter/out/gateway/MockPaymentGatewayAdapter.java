@@ -3,6 +3,7 @@ package com.ironvault.payments.adapter.out.gateway;
 import com.ironvault.payments.domain.enums.DeclineReason;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
+import com.ironvault.payments.domain.model.PaymentGatewayRequest;
 import com.ironvault.payments.domain.model.PaymentGatewayResult;
 import com.ironvault.payments.domain.port.out.PaymentGatewayPort;
 import org.springframework.context.annotation.Profile;
@@ -15,14 +16,14 @@ import java.util.UUID;
 @Profile("!prod")
 public class MockPaymentGatewayAdapter implements PaymentGatewayPort {
     @Override
-    public PaymentGatewayResult process(Payment payment) {
+    public PaymentGatewayResult process(PaymentGatewayRequest request) {
         String externalId = "mock-gw-" + UUID.randomUUID();
 
-        if (isTechnicalFailure(payment.getAmount())) {
+        if (isTechnicalFailure(request.getPayment().getAmount())) {
             throw new RuntimeException("Mock gateway timeout");
         }
 
-        if (isApproved(payment.getAmount())) {
+        if (isApproved(request.getPayment().getAmount())) {
             return new PaymentGatewayResult(
                     externalId,
                     PaymentStatus.APPROVED,
