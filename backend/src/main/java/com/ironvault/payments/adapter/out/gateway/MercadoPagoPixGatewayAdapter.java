@@ -2,12 +2,14 @@ package com.ironvault.payments.adapter.out.gateway;
 
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.Payment;
+import com.ironvault.payments.domain.model.PaymentGatewayRequest;
 import com.ironvault.payments.domain.model.PaymentGatewayResult;
 import com.ironvault.payments.domain.port.out.PaymentGatewayPort;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.payment.PaymentCreateRequest;
 import com.mercadopago.client.payment.PaymentPayerRequest;
+import com.mercadopago.core.MPRequestOptions;
 import com.mercadopago.exceptions.MPApiException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +31,12 @@ public class MercadoPagoPixGatewayAdapter implements PaymentGatewayPort {
     }
 
     @Override
-    public PaymentGatewayResult process(Payment payment) {
+    public PaymentGatewayResult process(PaymentGatewayRequest request) {
+
+        var payment = request.getPayment();
 
         try {
-            PaymentCreateRequest request = PaymentCreateRequest.builder()
+            PaymentCreateRequest createRequest = PaymentCreateRequest.builder()
                     .transactionAmount(payment.getAmount())
                     .description(payment.getDescription() != null
                             ? payment.getDescription()
@@ -41,9 +45,14 @@ public class MercadoPagoPixGatewayAdapter implements PaymentGatewayPort {
                     .payer(PaymentPayerRequest.builder()
                             .email(payment.getPayerEmail())
                             .build())
+                    .applicationFee(request.getApplicationFee())
                     .build();
 
-            var response = callMercadoPago(request);
+            MPRequestOptions requestOptions = MPRequestOptions.builder()
+                    .accessToken(request.getSellerAccessToken())
+                    .build();
+
+            var response = new PaymentClient().create(createRequest, requestOptions);
 
             String externalId = String.valueOf(response.getId());
             String qrCode = response.getPointOfInteraction()
@@ -104,11 +113,5 @@ public class MercadoPagoPixGatewayAdapter implements PaymentGatewayPort {
             log.error("Error fetching payment from MercadoPago. externalId={} error={}", externalId, ex.getMessage());
             throw new RuntimeException("Error fetching payment: " + ex.getMessage(), ex);
         }
-    }
-
-
-    private com.mercadopago.resources.payment.Payment callMercadoPago(PaymentCreateRequest request)
-            throws Exception {
-        return new PaymentClient().create(request);
     }
 }
