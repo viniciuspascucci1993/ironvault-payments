@@ -85,6 +85,8 @@ public class ProcessPaymentAsyncService {
             payment.setGatewayMessage(gatewayResult.getGatewayMessage());
             payment.setDeclineReason(gatewayResult.getDeclineReason());
             payment.setFailureReason(gatewayResult.getFailureReason());
+            payment.setApplicationFee(applicationFee);
+            payment.setNetAmount(gatewayResult.getNetAmount());
             payment.setPixQrCode(gatewayResult.getPixQrCode());
             payment.setPixCopyPaste(gatewayResult.getPixCopyPaste());
             payment.setUpdatedAt(Instant.now());

@@ -64,7 +64,7 @@ public class PaymentControllerTest {
                         PaymentStatus.APPROVED,
                         "APPROVED",
                         "Approved",
-                        null, null, null, null
+                        null, null, null, null, null
                 )
         );
     }
