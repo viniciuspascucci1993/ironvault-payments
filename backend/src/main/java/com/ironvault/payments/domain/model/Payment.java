@@ -32,6 +32,9 @@ public class Payment {
 
     private String failureReason;
 
+    private BigDecimal applicationFee;
+    private BigDecimal netAmount;
+
 
     private Instant createdAt;
     private Instant updatedAt;
@@ -149,6 +152,22 @@ public class Payment {
 
     public void setFailureReason(String failureReason) {
         this.failureReason = failureReason;
+    }
+
+    public BigDecimal getApplicationFee() {
+        return applicationFee;
+    }
+
+    public void setApplicationFee(BigDecimal applicationFee) {
+        this.applicationFee = applicationFee;
+    }
+
+    public BigDecimal getNetAmount() {
+        return netAmount;
+    }
+
+    public void setNetAmount(BigDecimal netAmount) {
+        this.netAmount = netAmount;
     }
 
     public Instant getCreatedAt() {

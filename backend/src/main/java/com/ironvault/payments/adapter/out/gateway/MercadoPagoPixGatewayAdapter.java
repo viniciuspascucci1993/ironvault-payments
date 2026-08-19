@@ -1,7 +1,6 @@
 package com.ironvault.payments.adapter.out.gateway;
 
 import com.ironvault.payments.domain.enums.PaymentStatus;
-import com.ironvault.payments.domain.model.Payment;
 import com.ironvault.payments.domain.model.PaymentGatewayRequest;
 import com.ironvault.payments.domain.model.PaymentGatewayResult;
 import com.ironvault.payments.domain.port.out.PaymentGatewayPort;
@@ -16,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
 
 @Component
 @Primary
@@ -60,6 +61,10 @@ public class MercadoPagoPixGatewayAdapter implements PaymentGatewayPort {
             String qrCodeBase64 = response.getPointOfInteraction()
                     .getTransactionData().getQrCodeBase64();
 
+            BigDecimal netAmount = response.getTransactionDetails() != null
+                    ? response.getTransactionDetails().getNetReceivedAmount()
+                    : null;
+
             log.info("PIX payment created. externalId={} status={}",
                     externalId, response.getStatus());
 
@@ -71,7 +76,8 @@ public class MercadoPagoPixGatewayAdapter implements PaymentGatewayPort {
                     null,
                     null,
                     qrCode,
-                    qrCodeBase64
+                    qrCodeBase64,
+                    netAmount
             );
 
         } catch (MPApiException apiEx) {
@@ -98,6 +104,10 @@ public class MercadoPagoPixGatewayAdapter implements PaymentGatewayPort {
                 default -> PaymentStatus.PROCESSING;
             };
 
+            BigDecimal netAmount = response.getTransactionDetails() != null
+                    ? response.getTransactionDetails().getNetReceivedAmount()
+                    : null;
+
             return new PaymentGatewayResult(
                     externalId,
                     status,
@@ -106,7 +116,8 @@ public class MercadoPagoPixGatewayAdapter implements PaymentGatewayPort {
                     null,
                     null,
                     null,
-                    null
+                    null,
+                    netAmount
             );
 
         } catch (Exception ex) {
