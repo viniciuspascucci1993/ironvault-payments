@@ -32,7 +32,8 @@ public class MockPaymentGatewayAdapter implements PaymentGatewayPort {
                     null,
                     null,
                     null,  // pixQrCode
-                    null   // pixCopyPaste
+                    null,   // pixCopyPaste,
+                    null
             );
         }
 
@@ -44,7 +45,8 @@ public class MockPaymentGatewayAdapter implements PaymentGatewayPort {
                 DeclineReason.INSUFFICIENT_FUNDS,
                 "Mock gateway rejected payment",
                 null,  // pixQrCode
-                null   // pixCopyPaste
+                null,   // pixCopyPaste
+                null
         );
     }
 
@@ -55,6 +57,7 @@ public class MockPaymentGatewayAdapter implements PaymentGatewayPort {
                 PaymentStatus.APPROVED,
                 "APPROVED",
                 "Mock payment approved",
+                null,
                 null,
                 null,
                 null,

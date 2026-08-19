@@ -3,6 +3,8 @@ package com.ironvault.payments.domain.model;
 import com.ironvault.payments.domain.enums.DeclineReason;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 
+import java.math.BigDecimal;
+
 public class PaymentGatewayResult {
 
     private final String externalId;
@@ -13,6 +15,7 @@ public class PaymentGatewayResult {
     private final String failureReason;
     private final String pixQrCode;
     private final String pixCopyPaste;
+    private final BigDecimal netAmount;
 
     public PaymentGatewayResult(String externalId,
                                 PaymentStatus status,
@@ -21,7 +24,8 @@ public class PaymentGatewayResult {
                                 DeclineReason declineReason,
                                 String failureReason,
                                 String pixQrCode,
-                                String pixCopyPaste) {
+                                String pixCopyPaste,
+                                BigDecimal netAmount) {
         this.externalId = externalId;
         this.status = status;
         this.gatewayCode = gatewayCode;
@@ -30,6 +34,7 @@ public class PaymentGatewayResult {
         this.failureReason = failureReason;
         this.pixQrCode = pixQrCode;
         this.pixCopyPaste = pixCopyPaste;
+        this.netAmount = netAmount;
     }
 
     public String getExternalId() {
@@ -62,5 +67,9 @@ public class PaymentGatewayResult {
 
     public String getPixCopyPaste() {
         return pixCopyPaste;
+    }
+
+    public BigDecimal getNetAmount() {
+        return netAmount;
     }
 }

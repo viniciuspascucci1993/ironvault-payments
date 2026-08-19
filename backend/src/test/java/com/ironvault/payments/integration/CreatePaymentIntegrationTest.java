@@ -85,7 +85,7 @@ public class CreatePaymentIntegrationTest {
                         PaymentStatus.APPROVED,
                         "APPROVED",
                         "Approved",
-                        null, null, null, null
+                        null, null, null, null, null
                 )
         );
     }

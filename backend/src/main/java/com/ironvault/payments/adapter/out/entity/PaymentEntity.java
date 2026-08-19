@@ -49,6 +49,12 @@ public class PaymentEntity {
     @Column(columnDefinition = "TEXT")
     private String failureReason;
 
+    @Column(name = "application_fee")
+    private BigDecimal applicationFee;
+
+    @Column(name = "net_amount")
+    private BigDecimal netAmount;
+
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -167,6 +173,22 @@ public class PaymentEntity {
 
     public void setFailureReason(String failureReason) {
         this.failureReason = failureReason;
+    }
+
+    public BigDecimal getApplicationFee() {
+        return applicationFee;
+    }
+
+    public void setApplicationFee(BigDecimal applicationFee) {
+        this.applicationFee = applicationFee;
+    }
+
+    public BigDecimal getNetAmount() {
+        return netAmount;
+    }
+
+    public void setNetAmount(BigDecimal netAmount) {
+        this.netAmount = netAmount;
     }
 
     public Instant getCreatedAt() {

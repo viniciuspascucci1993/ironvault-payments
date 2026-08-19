@@ -16,6 +16,8 @@ public class PaymentResponse {
     private UUID id;
     private UUID merchantId;
     private BigDecimal amount;
+    private BigDecimal applicationFee;
+    private BigDecimal netAmount;
     private String currency;
     private String status;
     private String paymentMethod;
