@@ -33,7 +33,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/api/payments/webhooks/**"
+                                "/api/payments/webhooks/**",
+                                "/api/internal/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
