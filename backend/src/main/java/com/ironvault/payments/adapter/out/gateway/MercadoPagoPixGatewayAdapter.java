@@ -75,8 +75,8 @@ public class MercadoPagoPixGatewayAdapter implements PaymentGatewayPort {
                     response.getStatusDetail(),
                     null,
                     null,
-                    qrCode,
                     qrCodeBase64,
+                    qrCode,
                     netAmount
             );
 
