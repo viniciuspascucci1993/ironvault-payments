@@ -3,6 +3,7 @@ package com.ironvault.payments.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironvault.payments.adapter.in.dto.PaymentRequest;
 import com.ironvault.payments.adapter.in.security.JwtTokenValidator;
+import com.ironvault.payments.adapter.out.client.MerchantsClient;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.model.PaymentGatewayResult;
 import com.ironvault.payments.domain.port.out.PaymentGatewayPort;
@@ -40,6 +41,9 @@ public class PaymentControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @MockBean
+    private MerchantsClient merchantsClient;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -52,6 +56,9 @@ public class PaymentControllerTest {
     @BeforeEach
     void setUp() {
         doNothing().when(jwtTokenValidator).validateToken(any());
+
+        when(jwtTokenValidator.extractMerchantId(any()))
+                .thenReturn(UUID.randomUUID().toString());
 
         when(jwtTokenValidator.extractEmail(any()))
                 .thenReturn("teste@gmail.com");
