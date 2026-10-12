@@ -1,6 +1,7 @@
 package com.ironvault.payments.integration;
 
 import com.ironvault.payments.adapter.in.security.JwtTokenValidator;
+import com.ironvault.payments.adapter.out.client.MerchantsClient;
 import com.ironvault.payments.application.OutboxDispatcherService;
 import com.ironvault.payments.domain.enums.OutboxEventStatus;
 import com.ironvault.payments.domain.enums.PaymentStatus;
@@ -44,6 +45,9 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 public class CreatePaymentIntegrationTest {
 
+    @MockBean
+    private MerchantsClient merchantsClient;
+
     @Autowired
     private CreatePaymentUseCase createPaymentUseCase;
 
@@ -71,6 +75,7 @@ public class CreatePaymentIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        when(merchantsClient.getMerchantAccessToken(any())).thenReturn("TEST-seller-token");
 
         outboxEventRepositoryPort.findPendingEvents()
                 .forEach(event -> {
