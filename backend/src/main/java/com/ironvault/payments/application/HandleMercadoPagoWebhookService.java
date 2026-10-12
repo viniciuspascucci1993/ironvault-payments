@@ -1,5 +1,6 @@
 package com.ironvault.payments.application;
 
+import com.ironvault.payments.adapter.out.client.StoreClient;
 import com.ironvault.payments.domain.enums.PaymentStatus;
 import com.ironvault.payments.domain.enums.TransactionStatus;
 import com.ironvault.payments.domain.model.Payment;
@@ -23,14 +24,18 @@ public class HandleMercadoPagoWebhookService implements HandleMercadoPagoWebhook
     private final WebhookEventRepositoryPort webhookEventRepositoryPort;
     private final TransactionRepositoryPort transactionRepositoryPort;
 
+    private final StoreClient storeClient;
+
     public HandleMercadoPagoWebhookService(PaymentGatewayPort paymentGatewayPort,
                                            PaymentRepositoryPort paymentRepositoryPort,
                                            WebhookEventRepositoryPort webhookEventRepositoryPort,
-                                           TransactionRepositoryPort transactionRepositoryPort) {
+                                           TransactionRepositoryPort transactionRepositoryPort,
+                                           StoreClient storeClient) {
         this.paymentGatewayPort = paymentGatewayPort;
         this.paymentRepositoryPort = paymentRepositoryPort;
         this.webhookEventRepositoryPort = webhookEventRepositoryPort;
         this.transactionRepositoryPort = transactionRepositoryPort;
+        this.storeClient = storeClient;
     }
 
     @Override
@@ -69,6 +74,10 @@ public class HandleMercadoPagoWebhookService implements HandleMercadoPagoWebhook
 
 
         webhookEventRepositoryPort.save(eventId, externalId, Instant.now());
+
+        if (paymentGatewayResult.getStatus() == PaymentStatus.APPROVED) {
+            storeClient.notifyOrderPaid(payment.getId().toString());
+        }
 
         log.info("Payment updated via MercadoPago webhook. externalId={} status={}", externalId,
                 paymentGatewayResult.getStatus());

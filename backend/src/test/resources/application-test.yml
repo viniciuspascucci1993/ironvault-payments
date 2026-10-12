@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+
+AUTH_URL: http://localhost:0
+INTERNAL_API_KEY: test-internal-key
+MERCHANTS_URL: http://localhost:0
+NOTIFICATIONS_URL: http://localhost:0
+NOTIFICATIONS_API_KEY: test-notifications-key
+JWT_SECRET: test-secret-key-for-tests-only-minimum-256-bits-long
+
+app:
+  webhook:
+    mock-secret: ironvault-webhook-secret
+    signature-tolerance-seconds: 300
+  mercadopago:
+    access-token: ${MERCADO_PAGO_ACCESS_TOKEN:TEST-fake-default-token}
+  store:
+    url:

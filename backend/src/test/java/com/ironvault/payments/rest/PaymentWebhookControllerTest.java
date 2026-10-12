@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ironvault.payments.adapter.in.security.JwtTokenValidator;
 import com.ironvault.payments.adapter.in.security.SecurityConfig;
 import com.ironvault.payments.adapter.in.web.PaymentWebhookController;
+import com.ironvault.payments.adapter.out.client.ApiKeyValidationClient;
 import com.ironvault.payments.application.HandleMockWebhookService;
 import com.ironvault.payments.application.WebhookProcessingService;
 import com.ironvault.payments.adapter.in.security.WebhookSignature;
+import com.ironvault.payments.domain.port.in.webhook.HandleMercadoPagoWebhookUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,6 +39,12 @@ public class PaymentWebhookControllerTest {
 
     private static final String SECRET = "ironvault-webhook-secret";
     private static final String URL = "/api/payments/webhooks/mock";
+
+    @MockBean
+    private ApiKeyValidationClient apiKeyValidationClient;
+
+    @MockBean
+    private HandleMercadoPagoWebhookUseCase handleMercadoPagoWebhookUseCase;
 
     @Autowired
     private MockMvc mockMvc;
